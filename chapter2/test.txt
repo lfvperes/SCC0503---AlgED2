@@ -1,0 +1,3 @@
+Hello, World!
+This is a test file.
+It was created to test our file reader program.
