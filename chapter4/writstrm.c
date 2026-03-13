@@ -1,6 +1,5 @@
 #include "fileio.h"
 #include <stdlib.h>
-#include <stdio.h>
 
 int main() {
     char first[30], last[30], address[30], city[20];
@@ -73,7 +72,6 @@ int main() {
         out_str(fd, city);
         out_str(fd, state);
         out_str(fd, zip);
-        write(fd, "#", 1);
 
         /* prepare for next entry */
         printf("\n\nType in a last name (surname), or Ctrl+C to exit\n>>>");
