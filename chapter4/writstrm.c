@@ -1,5 +1,4 @@
 #include "fileio.h"
-#define out_str(fd,s) write((fd), (s), strlen(s))
 #include <stdlib.h>
 #include <stdio.h>
 
