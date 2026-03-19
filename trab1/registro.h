@@ -6,11 +6,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-// Constants
+// constantes
 #define TAM_REG_CABECALHO 17
 #define TAM_REG_DADOS 80
 
-// Struct definition for a data record
+// struct para o registro de dados
 struct registro {
     char removido;
     int proximo;
@@ -21,9 +21,9 @@ struct registro {
     int codLinhaIntegra;
     int codEstIntegra;
     int tamNomeEstacao;
-    char *nomeEstacao; // This is a pointer, not the actual string data for fixed-size records
+    char *nomeEstacao;
     int tamNomeLinha;
-    char *nomeLinha;   // This is a pointer, not the actual string data for fixed-size records
+    char *nomeLinha;
 };
 
 #endif // REGISTRO_H

@@ -2,9 +2,6 @@
 #include <stdlib.h>
 #include "registro.h"
 
-#define TAM_REG_CABECALHO 17
-#define TAM_REG_DADOS 80
-
 int func1(char *estacoesCSV, char *estacoesBin);
 int func2(char *arquivoEntrada);
 int func3(char *arquivoEntrada, char *n);

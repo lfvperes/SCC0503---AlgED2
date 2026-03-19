@@ -50,7 +50,7 @@ static void escreveRegistroDados(FILE *fpBin, const struct registro *dados) {
     offset += sizeof(dados->tamNomeEstacao);
 
     // nomeEstacao
-    memcpy(bufferDados + offset, &dados->nomeEstacao, dados->tamNomeEstacao);
+    memcpy(bufferDados + offset, dados->nomeEstacao, dados->tamNomeEstacao);
     offset += dados->tamNomeEstacao;
 
     // tamNomeLinha
@@ -58,7 +58,7 @@ static void escreveRegistroDados(FILE *fpBin, const struct registro *dados) {
     offset += sizeof(dados->tamNomeLinha);
     
     // nomeLinha
-    memcpy(bufferDados + offset, &dados->nomeLinha, dados->tamNomeLinha);
+    memcpy(bufferDados + offset, dados->nomeLinha, dados->tamNomeLinha);
     offset += dados->tamNomeLinha;
 
     // preenche lixo
@@ -77,7 +77,6 @@ int func1(char *estacoesCSV, char *estacoesBin) {
     // abre arquivo para escrita em binario
     FILE *fpBin = fopen(estacoesBin, "wb");
 
-    char bufferDados[TAM_REG_DADOS];
     struct registro dados;
 
 
@@ -108,20 +107,24 @@ int func1(char *estacoesCSV, char *estacoesBin) {
     }
 
     char linha[TAM_REG_DADOS];
+    // pula o cabeçalho do CSV
+    fgets(linha, TAM_REG_DADOS, fpCSV);
     while (fgets(linha, TAM_REG_DADOS, fpCSV)) {
         char *token = strtok(linha, ",");
         dados.codEstacao = atoi(token);
         
         token = strtok(NULL, ",");
-        dados.nomeEstacao = token;
-        dados.tamNomeEstacao = strlen(dados.nomeEstacao);
+        dados.tamNomeEstacao = strlen(token);
+        dados.nomeEstacao = malloc(dados.tamNomeEstacao);
+        memcpy(dados.nomeEstacao, token, dados.tamNomeEstacao);
         
         token = strtok(NULL, ",");
         dados.codLinha = atoi(token);
         
         token = strtok(NULL, ",");
-        dados.nomeLinha = token;
-        dados.tamNomeLinha = strlen(dados.nomeLinha);
+        dados.tamNomeLinha = strlen(token);
+        dados.nomeLinha = malloc(dados.tamNomeLinha);
+        memcpy(dados.nomeLinha, token, dados.tamNomeLinha);
         
         token = strtok(NULL, ",");
         dados.codProxEstacao = atoi(token);
@@ -137,6 +140,11 @@ int func1(char *estacoesCSV, char *estacoesBin) {
         
         dados.removido = '0';
         dados.proximo = -1;
+
+        escreveRegistroDados(fpBin, &dados);
+ 
+        free(dados.nomeEstacao);
+        free(dados.nomeLinha);
     }
 
     fclose(fpCSV);
