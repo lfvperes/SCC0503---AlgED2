@@ -103,7 +103,9 @@ static int nomeEstacaoExiste(FILE *fpBin, const struct registro *dados, int nroR
     return 0;
 }
 
-static int escreveRegistroCabecalho(FILE *fpBin) {
+static int escreveRegistroCabecalho(FILE *fpBin, char status, int proxRRN, int nroEstacoes) {
+    fseek(fpBin, 0, SEEK_SET);
+
     // offsets dos campos de cabecalho
     size_t offset_status = 0;
     size_t offset_topo = 1;
@@ -113,16 +115,15 @@ static int escreveRegistroCabecalho(FILE *fpBin) {
 
     // inicializando cabecalho
     memset(bufferCabecalho, 0, TAM_REG_CABECALHO);
-    *(char *)(bufferCabecalho + offset_status) = '0';
+    *(char *)(bufferCabecalho + offset_status) = status;
     *(int *)(bufferCabecalho + offset_topo) = -1;
-    *(int *)(bufferCabecalho + offset_proxRRN) = 0;
-    *(int *)(bufferCabecalho + offset_nroEstacoes) = 0;
+    *(int *)(bufferCabecalho + offset_proxRRN) = proxRRN;
+    *(int *)(bufferCabecalho + offset_nroEstacoes) = nroEstacoes;
     *(int *)(bufferCabecalho + offset_nroParesEstacao) = 0;
 
     // escreve cabecalho no arquivo
     if (fwrite(bufferCabecalho, TAM_REG_CABECALHO, 1, fpBin) != 1) {
         perror("Erro ao escrever cabecalho no arquivo binario");
-        fclose(fpBin);
         return 1;
     }
     return 0;
@@ -175,6 +176,7 @@ static void lerRegistroCSV(char *linha, struct registro *dados) {
 
 int func1(char *estacoesCSV, char *estacoesBin) {
     struct registro dados;
+    int nroRegistros = 0, nroEstacoes = 0;
 
     FILE *fpCSV = fopen(estacoesCSV, "r");
     FILE *fpBin = fopen(estacoesBin, "wb");
@@ -184,7 +186,7 @@ int func1(char *estacoesCSV, char *estacoesBin) {
         return 1;
     }
 
-    escreveRegistroCabecalho(fpBin);
+    escreveRegistroCabecalho(fpBin, '0', 0, 0);
 
     char linha[TAM_REG_DADOS];
 
@@ -196,11 +198,20 @@ int func1(char *estacoesCSV, char *estacoesBin) {
 
         lerRegistroCSV(linha, &dados);
 
+        if (!nomeEstacaoExiste(fpBin, &dados, nroRegistros)) {
+            nroEstacoes++;
+        }
+
         escreveRegistroDados(fpBin, &dados);
+        nroRegistros++;
+
+        escreveRegistroCabecalho(fpBin, '0', nroRegistros, nroEstacoes);
 
         free(dados.nomeEstacao);
         free(dados.nomeLinha);
     }
+
+    escreveRegistroCabecalho(fpBin, '1', nroRegistros, nroEstacoes);
 
     fclose(fpCSV);
     fclose(fpBin);
