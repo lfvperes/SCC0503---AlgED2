@@ -1,5 +1,5 @@
-#ifndef REGISTRO_H
-#define REGISTRO_H
+#ifndef REGISTRO_CABECALHO
+#define REGISTRO_CABECALHO
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,4 +25,4 @@ struct registro {
     char *nomeLinha;
 };
 
-#endif // REGISTRO_H
+#endif // REGISTRO_CABECALHO

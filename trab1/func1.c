@@ -48,6 +48,7 @@ static void escreveRegistroDados(FILE *fpBin, const struct registro *dados) {
     memcpy(bufferDados + offset, &dados->tamNomeEstacao, sizeof(dados->tamNomeEstacao));
     offset += sizeof(dados->tamNomeEstacao);
 
+    // nomeEstacao
     memcpy(bufferDados + offset, dados->nomeEstacao, dados->tamNomeEstacao);
     offset += dados->tamNomeEstacao;
 
@@ -67,6 +68,39 @@ static void escreveRegistroDados(FILE *fpBin, const struct registro *dados) {
     if (fwrite(bufferDados, TAM_REG_DADOS, 1, fpBin) != 1) {
         perror("Error writing data record to binary file");
     }
+}
+
+// verifica se um registro com o mesmo nomeEstacao já foi escrito no arquivo binário.
+// retorna 1 se encontrado, 0 caso contrário.
+static int nomeEstacaoExiste(FILE *fpBin, const struct registro *dados, int nroRegistros) {
+    int bufferTamNomeEstacao, n;
+    int offset;
+    
+    for (int i = 0; i < nroRegistros; i++) {
+        // calcula e aplica offset absoluto até o campo tamNomeEstacao do registro i,
+        // pulando o cabeçalho, os registros anteriores e os 29 bytes de campos fixos
+        offset = TAM_REG_CABECALHO + i * TAM_REG_DADOS + 29;
+        fseek(fpBin, offset, SEEK_SET);
+        
+        // lê o tamanho do nomeEstacao do registro i
+        fread(&bufferTamNomeEstacao, sizeof(int), 1, fpBin);
+
+        // só compara os nomes se tiverem o mesmo tamanho
+        if (bufferTamNomeEstacao == dados->tamNomeEstacao) {
+            // lê o nomeEstacao do registro i para um buffer temporário
+            char bufferNomeEstacao[bufferTamNomeEstacao];
+            fread(bufferNomeEstacao, bufferTamNomeEstacao, 1, fpBin);
+
+            // compara o nome lido com o nome do registro atual
+            n = memcmp(bufferNomeEstacao, dados->nomeEstacao, dados->tamNomeEstacao);
+            if (n == 0)
+                return 1;
+        }
+    }
+    
+    // restaura a posição do arquivo para o fim dos registros escritos
+    fseek(fpBin, TAM_REG_CABECALHO + nroRegistros * TAM_REG_DADOS, SEEK_SET);
+    return 0;
 }
 
 static int escreveRegistroCabecalho(FILE *fpBin) {
@@ -140,10 +174,10 @@ static void lerRegistroCSV(char *linha, struct registro *dados) {
 }
 
 int func1(char *estacoesCSV, char *estacoesBin) {
+    struct registro dados;
+
     FILE *fpCSV = fopen(estacoesCSV, "r");
     FILE *fpBin = fopen(estacoesBin, "wb");
-
-    struct registro dados;
 
     if (fpBin == NULL) {
         perror("Erro ao abrir arquivo binario para escrita");
