@@ -84,7 +84,7 @@ static int nomeEstacaoExiste(FILE *fpBin, const struct registro *dados, int nroR
             // lê o nomeEstacao do registro i para um buffer temporário
             char bufferNomeEstacao[bufferTamNomeEstacao];
             fread(bufferNomeEstacao, bufferTamNomeEstacao, 1, fpBin);
-
+            printf("%s ", bufferNomeEstacao);
             // compara o nome lido com o nome do registro atual
             n = memcmp(bufferNomeEstacao, dados->nomeEstacao, dados->tamNomeEstacao);
             if (n == 0)
@@ -172,6 +172,86 @@ static void lerRegistroCSV(char *linha, struct registro *dados) {
     dados->proximo = -1;
 }
 
+static void binarioNaTela(char *estacoesBin) {
+    struct registro dados;
+    FILE *fpBin = fopen(estacoesBin, "rb");
+
+    // ler o cabecalho para imprimir
+    fread(bufferCabecalho, TAM_REG_CABECALHO, 1, fpBin);
+    
+    // offsets de cada campo dentro do buffer de cabeçalho
+    size_t offset_status = 0;
+    size_t offset_topo = 1;
+    size_t offset_proxRRN = 1 + sizeof(int);             // 5
+    size_t offset_nroEstacoes = 1 + 2 * sizeof(int);     // 9
+    size_t offset_nroParesEstacao = 1 + 3 * sizeof(int); // 13
+
+    char status = *(char *)(bufferCabecalho + offset_status);
+    int topo = *(int *)(bufferCabecalho + offset_topo);
+    int proxRRN = *(int *)(bufferCabecalho + offset_proxRRN);
+    int nroEstacoes = *(int *)(bufferCabecalho + offset_nroEstacoes);
+    int nroParesEstacao = *(int *)(bufferCabecalho + offset_nroParesEstacao);
+    
+    // imprimindo cabecalho
+    printf("%c ", status);
+    printf("%d ", topo);
+    printf("%d ", proxRRN);
+    printf("%d ", nroEstacoes);
+    printf("%d\n", nroParesEstacao);
+
+    for (int i = 0; i < 10; i++) {
+        fread(&dados.removido, sizeof(dados.removido), 1, fpBin);
+        printf("%c ", dados.removido);
+        
+        fread(&dados.proximo, sizeof(dados.proximo), 1, fpBin);
+        printf("%d ", dados.proximo);
+        
+        fread(&dados.codEstacao, sizeof(dados.codEstacao), 1, fpBin);
+        printf("%2d ", dados.codEstacao);
+        
+        fread(&dados.codLinha, sizeof(dados.codLinha), 1, fpBin);
+        printf("%2d ", dados.codLinha);
+        
+        fread(&dados.codProxEstacao, sizeof(dados.codProxEstacao), 1, fpBin);
+        printf("%2d ", dados.codProxEstacao);
+        
+        fread(&dados.distProxEstacao, sizeof(dados.distProxEstacao), 1, fpBin);
+        printf("%4d ", dados.distProxEstacao);
+        
+        fread(&dados.codLinhaIntegra, sizeof(dados.codLinhaIntegra), 1, fpBin);
+        printf("%2d ", dados.codLinhaIntegra);
+        
+        fread(&dados.codEstIntegra, sizeof(dados.codEstIntegra), 1, fpBin);
+        printf("%2d ", dados.codEstIntegra);
+        
+        fread(&dados.tamNomeEstacao, sizeof(dados.tamNomeEstacao), 1, fpBin);
+        printf("%2d ", dados.tamNomeEstacao);
+        
+        dados.nomeEstacao = malloc(dados.tamNomeEstacao + 1);
+        fread(dados.nomeEstacao, dados.tamNomeEstacao, 1, fpBin);
+        dados.nomeEstacao[dados.tamNomeEstacao] = '\0';
+        printf("%s ", dados.nomeEstacao);
+        free(dados.nomeEstacao);
+        
+        fread(&dados.tamNomeLinha, sizeof(dados.tamNomeLinha), 1, fpBin);
+        printf("%2d ", dados.tamNomeLinha);
+        
+        dados.nomeLinha = malloc(dados.tamNomeLinha + 1);
+        fread(dados.nomeLinha, dados.tamNomeLinha, 1, fpBin);
+        dados.nomeLinha[dados.tamNomeLinha] = '\0';
+        printf("%s ", dados.nomeLinha);
+        free(dados.nomeLinha);
+        
+        int restante = TAM_REG_DADOS - sizeof(char) - 9 * sizeof(int) - dados.tamNomeEstacao - dados.tamNomeLinha;
+        char lixo[restante];
+        fread(lixo, sizeof(char), restante, fpBin);
+        printf("%s\n", lixo);
+
+    }
+
+    fclose(fpBin);
+}
+
 // lê registros do arquivo CSV e escreve no arquivo binário
 // o cabeçalho é atualizado após cada registro escrito para manter
 // consistência em caso de falha. ao final marca o arquivo como consistente
@@ -219,5 +299,8 @@ int func1(char *estacoesCSV, char *estacoesBin) {
 
     fclose(fpCSV);
     fclose(fpBin);
+
+    binarioNaTela(estacoesBin);
+
     return 0;
 }
