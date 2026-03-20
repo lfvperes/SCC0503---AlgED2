@@ -1,6 +1,4 @@
-#include <stdio.h>
 #include <stdlib.h>
-#include "registro.h"
 
 int func1(char *estacoesCSV, char *estacoesBin);
 int func2(char *arquivoEntrada);
@@ -26,24 +24,4 @@ int main(int argc, char *argv[]) {
     }
 
     return 0;
-}
-
-
-// Placeholder implementations for other functions
-int func2(char *arquivoEntrada) {
-    printf("Function 2 called with: %s\n", arquivoEntrada);
-    return 0;
-}
-int func3(char *arquivoEntrada, char *n) {
-    printf("Function 3 called with: %s, %s\n", arquivoEntrada, n);
-    return 0;
-}
-int func4(char *arquivoEntrada, char *RRN) {
-    printf("Function 4 called with: %s, %s\n", arquivoEntrada, RRN);
-    return 0;
-}
-
-void escreveRegistroDados(struct registro dados, char *bufferDados) {
-
-    return;
 }
