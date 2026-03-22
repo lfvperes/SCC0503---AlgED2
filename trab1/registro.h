@@ -25,4 +25,9 @@ struct registro {
     char *nomeLinha;
 };
 
+struct parEstacao {
+    int codEstacao1;
+    int codEstacao2;
+};
+
 #endif // REGISTRO_CABECALHO

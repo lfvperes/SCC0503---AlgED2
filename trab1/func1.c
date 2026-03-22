@@ -100,7 +100,7 @@ static int nomeEstacaoExiste(FILE *fpBin, const struct registro *dados, int nroR
 
 // inicializa ou atualiza o registro de cabeçalho no arquivo binário.
 // sempre busca o início do arquivo antes de escrever
-static int escreveRegistroCabecalho(FILE *fpBin, char status, int proxRRN, int nroEstacoes) {
+static int escreveRegistroCabecalho(FILE *fpBin, char status, int proxRRN, int nroEstacoes, int nroParesEstacao) {
     fseek(fpBin, 0, SEEK_SET);
 
     // offsets de cada campo dentro do buffer de cabeçalho
@@ -115,7 +115,7 @@ static int escreveRegistroCabecalho(FILE *fpBin, char status, int proxRRN, int n
     *(int *)(bufferCabecalho + offsetTopo) = -1;
     *(int *)(bufferCabecalho + offsetProxRRN) = proxRRN;
     *(int *)(bufferCabecalho + offsetNroEstacoes) = nroEstacoes;
-    *(int *)(bufferCabecalho + offsetNroParesEstacao) = 0;
+    *(int *)(bufferCabecalho + offsetNroParesEstacao) = nroParesEstacao;
 
     if (fwrite(bufferCabecalho, TAM_REG_CABECALHO, 1, fpBin) != 1) {
         perror("Erro ao escrever cabecalho no arquivo binario");
@@ -200,6 +200,7 @@ static void imprimeBinario(char *estacoesBin) {
     printf("%d ", nroEstacoes);
     printf("%d\n", nroParesEstacao);
 
+    // imprimindo registros de dados
     for (int i = 0; i < proxRRN; i++) {
         fread(&dados.removido, sizeof(dados.removido), 1, fpBin);
         printf("%c ", dados.removido);
@@ -255,12 +256,64 @@ static void imprimeBinario(char *estacoesBin) {
     fclose(fpBin);
 }
 
+void normalizaPar(struct parEstacao *par) {
+    int aux;
+    // ordena par para normalizacao
+    if (par->codEstacao1 > par->codEstacao2) {
+        aux = par->codEstacao1;
+        par->codEstacao1 = par->codEstacao2;
+        par->codEstacao2 = aux;
+    }
+}
+
+// retorna 1 se pares sao equivalentes depois de normalizar
+int paresSaoEquivalentes(struct parEstacao parDisco, struct parEstacao parNovo) {
+    normalizaPar(&parDisco);
+    normalizaPar(&parNovo);
+    if (parDisco.codEstacao1 == parNovo.codEstacao1 && parDisco.codEstacao2 == parNovo.codEstacao2)
+        return 1;
+    return 0;
+}
+
+int parExiste(FILE *fpBin, struct parEstacao parNovo, int nroRegistros) {
+    int codEstacaoDisco, codProxEstacaoDisco, offset;
+    int offsetCodEstacao = sizeof(char) + sizeof(int);
+    int offsetCodProxEstacao = offsetCodEstacao + sizeof(int) + sizeof(int);
+    struct parEstacao parDisco;
+
+    for (int i = 0; i < nroRegistros; i++) {
+        // le codEstacao do disco
+        offset = TAM_REG_CABECALHO + i * TAM_REG_DADOS + offsetCodEstacao;
+        fseek(fpBin, offset, SEEK_SET);
+        fread(&codEstacaoDisco, sizeof(int), 1, fpBin);
+        
+        // le codProxEstacao do disco
+        offset = TAM_REG_CABECALHO + i * TAM_REG_DADOS + offsetCodProxEstacao;
+        fseek(fpBin, offset, SEEK_SET);
+        fread(&codProxEstacaoDisco, sizeof(int), 1, fpBin);
+        
+        // armazena codigos lidos
+        parDisco.codEstacao1 = codEstacaoDisco;
+        parDisco.codEstacao2 = codProxEstacaoDisco;
+
+        // compara com par a ser inserido
+        if (paresSaoEquivalentes(parDisco, parNovo)) {
+            fseek(fpBin, TAM_REG_CABECALHO + nroRegistros * TAM_REG_DADOS, SEEK_SET);
+            return 1;
+        }
+    }
+    // se nenhum par equivalente foi encontrado
+    fseek(fpBin, TAM_REG_CABECALHO + nroRegistros * TAM_REG_DADOS, SEEK_SET);
+    return 0;
+}
+
 // lê registros do arquivo CSV e escreve no arquivo binário
 // o cabeçalho é atualizado após cada registro escrito para manter
 // consistência em caso de falha. ao final marca o arquivo como consistente
 int func1(char *estacoesCSV, char *estacoesBin) {
     struct registro dados;
-    int nroRegistros = 0, nroEstacoes = 0;
+    struct parEstacao parNovo;
+    int nroRegistros = 0, nroEstacoes = 0, nroParesEstacao = 0;
 
     FILE *fpCSV = fopen(estacoesCSV, "r");
     FILE *fpBin = fopen(estacoesBin, "wb+");
@@ -271,7 +324,7 @@ int func1(char *estacoesCSV, char *estacoesBin) {
     }
 
     // escreve cabeçalho inicial com status '0' (inconsistente) e contadores zerados
-    escreveRegistroCabecalho(fpBin, '0', 0, 0);
+    escreveRegistroCabecalho(fpBin, '0', 0, 0, 0);
 
     char linha[TAM_REG_DADOS];
 
@@ -287,18 +340,24 @@ int func1(char *estacoesCSV, char *estacoesBin) {
         if (!nomeEstacaoExiste(fpBin, &dados, nroRegistros))
             nroEstacoes++;
 
+        // incrementa nroParesEstacao apenas se o par ainda nao foi registrado
+        parNovo.codEstacao1 = dados.codEstacao;
+        parNovo.codEstacao2 = dados.codProxEstacao;
+        if (dados.codProxEstacao != -1 && !parExiste(fpBin, parNovo, nroRegistros))
+            nroParesEstacao++;
+
         escreveRegistroDados(fpBin, &dados);
         nroRegistros++;
 
         // atualiza o cabeçalho após cada escrita
-        escreveRegistroCabecalho(fpBin, '0', nroRegistros, nroEstacoes);
+        escreveRegistroCabecalho(fpBin, '0', nroRegistros, nroEstacoes, nroParesEstacao);
 
         free(dados.nomeEstacao);
         free(dados.nomeLinha);
     }
 
     // marca o arquivo como consistente ao final da escrita
-    escreveRegistroCabecalho(fpBin, '1', nroRegistros, nroEstacoes);
+    escreveRegistroCabecalho(fpBin, '1', nroRegistros, nroEstacoes, nroParesEstacao);
 
     fclose(fpCSV);
     fclose(fpBin);
