@@ -104,18 +104,18 @@ static int escreveRegistroCabecalho(FILE *fpBin, char status, int proxRRN, int n
     fseek(fpBin, 0, SEEK_SET);
 
     // offsets de cada campo dentro do buffer de cabeçalho
-    size_t offset_status = 0;
-    size_t offset_topo = 1;
-    size_t offset_proxRRN = 1 + sizeof(int);             // 5
-    size_t offset_nroEstacoes = 1 + 2 * sizeof(int);     // 9
-    size_t offset_nroParesEstacao = 1 + 3 * sizeof(int); // 13
+    size_t offsetStatus = 0;
+    size_t offsetTopo = 1;
+    size_t offsetProxRRN = 1 + sizeof(int);             // 5
+    size_t offsetNroEstacoes = 1 + 2 * sizeof(int);     // 9
+    size_t offsetNroParesEstacao = 1 + 3 * sizeof(int); // 13
 
     memset(bufferCabecalho, 0, TAM_REG_CABECALHO);
-    *(char *)(bufferCabecalho + offset_status) = status;
-    *(int *)(bufferCabecalho + offset_topo) = -1;
-    *(int *)(bufferCabecalho + offset_proxRRN) = proxRRN;
-    *(int *)(bufferCabecalho + offset_nroEstacoes) = nroEstacoes;
-    *(int *)(bufferCabecalho + offset_nroParesEstacao) = 0;
+    *(char *)(bufferCabecalho + offsetStatus) = status;
+    *(int *)(bufferCabecalho + offsetTopo) = -1;
+    *(int *)(bufferCabecalho + offsetProxRRN) = proxRRN;
+    *(int *)(bufferCabecalho + offsetNroEstacoes) = nroEstacoes;
+    *(int *)(bufferCabecalho + offsetNroParesEstacao) = 0;
 
     if (fwrite(bufferCabecalho, TAM_REG_CABECALHO, 1, fpBin) != 1) {
         perror("Erro ao escrever cabecalho no arquivo binario");
@@ -181,17 +181,17 @@ static void imprimeBinario(char *estacoesBin) {
     fread(bufferCabecalho, TAM_REG_CABECALHO, 1, fpBin);
     
     // offsets de cada campo dentro do buffer de cabeçalho
-    size_t offset_status = 0;
-    size_t offset_topo = 1;
-    size_t offset_proxRRN = 1 + sizeof(int);             // 5
-    size_t offset_nroEstacoes = 1 + 2 * sizeof(int);     // 9
-    size_t offset_nroParesEstacao = 1 + 3 * sizeof(int); // 13
+    size_t offsetStatus = 0;
+    size_t offsetTopo = 1;
+    size_t offsetProxRRN = 1 + sizeof(int);             // 5
+    size_t offsetNroEstacoes = 1 + 2 * sizeof(int);     // 9
+    size_t offsetNroParesEstacao = 1 + 3 * sizeof(int); // 13
 
-    char status = *(char *)(bufferCabecalho + offset_status);
-    int topo = *(int *)(bufferCabecalho + offset_topo);
-    int proxRRN = *(int *)(bufferCabecalho + offset_proxRRN);
-    int nroEstacoes = *(int *)(bufferCabecalho + offset_nroEstacoes);
-    int nroParesEstacao = *(int *)(bufferCabecalho + offset_nroParesEstacao);
+    char status = *(char *)(bufferCabecalho + offsetStatus);
+    int topo = *(int *)(bufferCabecalho + offsetTopo);
+    int proxRRN = *(int *)(bufferCabecalho + offsetProxRRN);
+    int nroEstacoes = *(int *)(bufferCabecalho + offsetNroEstacoes);
+    int nroParesEstacao = *(int *)(bufferCabecalho + offsetNroParesEstacao);
     
     // imprimindo cabecalho
     printf("%c ", status);
