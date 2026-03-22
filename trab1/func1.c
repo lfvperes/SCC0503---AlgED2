@@ -84,11 +84,12 @@ static int nomeEstacaoExiste(FILE *fpBin, const struct registro *dados, int nroR
             // lê o nomeEstacao do registro i para um buffer temporário
             char bufferNomeEstacao[bufferTamNomeEstacao];
             fread(bufferNomeEstacao, bufferTamNomeEstacao, 1, fpBin);
-            printf("%s ", bufferNomeEstacao);
             // compara o nome lido com o nome do registro atual
             n = memcmp(bufferNomeEstacao, dados->nomeEstacao, dados->tamNomeEstacao);
-            if (n == 0)
+            if (n == 0) {
+                fseek(fpBin, TAM_REG_CABECALHO + nroRegistros * TAM_REG_DADOS, SEEK_SET);
                 return 1;
+            }
         }
     }
 
@@ -172,7 +173,7 @@ static void lerRegistroCSV(char *linha, struct registro *dados) {
     dados->proximo = -1;
 }
 
-static void binarioNaTela(char *estacoesBin) {
+static void imprimeBinario(char *estacoesBin) {
     struct registro dados;
     FILE *fpBin = fopen(estacoesBin, "rb");
 
@@ -199,7 +200,7 @@ static void binarioNaTela(char *estacoesBin) {
     printf("%d ", nroEstacoes);
     printf("%d\n", nroParesEstacao);
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < proxRRN; i++) {
         fread(&dados.removido, sizeof(dados.removido), 1, fpBin);
         printf("%c ", dados.removido);
         
@@ -207,22 +208,22 @@ static void binarioNaTela(char *estacoesBin) {
         printf("%d ", dados.proximo);
         
         fread(&dados.codEstacao, sizeof(dados.codEstacao), 1, fpBin);
-        printf("%2d ", dados.codEstacao);
+        printf("%3d ", dados.codEstacao);
         
         fread(&dados.codLinha, sizeof(dados.codLinha), 1, fpBin);
         printf("%2d ", dados.codLinha);
         
         fread(&dados.codProxEstacao, sizeof(dados.codProxEstacao), 1, fpBin);
-        printf("%2d ", dados.codProxEstacao);
+        printf("%3d ", dados.codProxEstacao);
         
         fread(&dados.distProxEstacao, sizeof(dados.distProxEstacao), 1, fpBin);
-        printf("%4d ", dados.distProxEstacao);
+        printf("%5d ", dados.distProxEstacao);
         
         fread(&dados.codLinhaIntegra, sizeof(dados.codLinhaIntegra), 1, fpBin);
         printf("%2d ", dados.codLinhaIntegra);
         
         fread(&dados.codEstIntegra, sizeof(dados.codEstIntegra), 1, fpBin);
-        printf("%2d ", dados.codEstIntegra);
+        printf("%3d ", dados.codEstIntegra);
         
         fread(&dados.tamNomeEstacao, sizeof(dados.tamNomeEstacao), 1, fpBin);
         printf("%2d ", dados.tamNomeEstacao);
@@ -242,9 +243,11 @@ static void binarioNaTela(char *estacoesBin) {
         printf("%s ", dados.nomeLinha);
         free(dados.nomeLinha);
         
+        // printf("\niter %d: tamNomeEstacao=%d tamNomeLinha=%d\n", i, dados.tamNomeEstacao, dados.tamNomeLinha);
         int restante = TAM_REG_DADOS - sizeof(char) - 9 * sizeof(int) - dados.tamNomeEstacao - dados.tamNomeLinha;
-        char lixo[restante];
+        char lixo[restante+1];
         fread(lixo, sizeof(char), restante, fpBin);
+        lixo[restante] = '\0';
         printf("%s\n", lixo);
 
     }
@@ -260,7 +263,7 @@ int func1(char *estacoesCSV, char *estacoesBin) {
     int nroRegistros = 0, nroEstacoes = 0;
 
     FILE *fpCSV = fopen(estacoesCSV, "r");
-    FILE *fpBin = fopen(estacoesBin, "wb");
+    FILE *fpBin = fopen(estacoesBin, "wb+");
 
     if (fpBin == NULL) {
         perror("Erro ao abrir arquivo binario para escrita");
@@ -300,7 +303,7 @@ int func1(char *estacoesCSV, char *estacoesBin) {
     fclose(fpCSV);
     fclose(fpBin);
 
-    binarioNaTela(estacoesBin);
+    imprimeBinario(estacoesBin);
 
     return 0;
 }
