@@ -105,10 +105,10 @@ static int escreveRegistroCabecalho(FILE *fpBin, char status, int proxRRN, int n
 
     // offsets de cada campo dentro do buffer de cabeçalho
     size_t offsetStatus = 0;
-    size_t offsetTopo = 1;
-    size_t offsetProxRRN = 1 + sizeof(int);             // 5
-    size_t offsetNroEstacoes = 1 + 2 * sizeof(int);     // 9
-    size_t offsetNroParesEstacao = 1 + 3 * sizeof(int); // 13
+    size_t offsetTopo = sizeof(char);
+    size_t offsetProxRRN = offsetTopo + sizeof(int);             // 5
+    size_t offsetNroEstacoes = offsetTopo + 2 * sizeof(int);     // 9
+    size_t offsetNroParesEstacao = offsetTopo + 3 * sizeof(int); // 13
 
     memset(bufferCabecalho, 0, TAM_REG_CABECALHO);
     *(char *)(bufferCabecalho + offsetStatus) = status;
@@ -182,10 +182,10 @@ static void imprimeBinario(char *estacoesBin) {
     
     // offsets de cada campo dentro do buffer de cabeçalho
     size_t offsetStatus = 0;
-    size_t offsetTopo = 1;
-    size_t offsetProxRRN = 1 + sizeof(int);             // 5
-    size_t offsetNroEstacoes = 1 + 2 * sizeof(int);     // 9
-    size_t offsetNroParesEstacao = 1 + 3 * sizeof(int); // 13
+    size_t offsetTopo = sizeof(char);
+    size_t offsetProxRRN = offsetTopo + sizeof(int);             // 5
+    size_t offsetNroEstacoes = offsetTopo + 2 * sizeof(int);     // 9
+    size_t offsetNroParesEstacao = offsetTopo + 3 * sizeof(int); // 13
 
     char status = *(char *)(bufferCabecalho + offsetStatus);
     int topo = *(int *)(bufferCabecalho + offsetTopo);
@@ -231,6 +231,7 @@ static void imprimeBinario(char *estacoesBin) {
         
         dados.nomeEstacao = malloc(dados.tamNomeEstacao + 1);
         fread(dados.nomeEstacao, dados.tamNomeEstacao, 1, fpBin);
+        // adiciona \0 para poder printar
         dados.nomeEstacao[dados.tamNomeEstacao] = '\0';
         printf("%s ", dados.nomeEstacao);
         free(dados.nomeEstacao);
@@ -240,6 +241,7 @@ static void imprimeBinario(char *estacoesBin) {
         
         dados.nomeLinha = malloc(dados.tamNomeLinha + 1);
         fread(dados.nomeLinha, dados.tamNomeLinha, 1, fpBin);
+        // adiciona \0 para poder printar
         dados.nomeLinha[dados.tamNomeLinha] = '\0';
         printf("%s ", dados.nomeLinha);
         free(dados.nomeLinha);
@@ -256,9 +258,9 @@ static void imprimeBinario(char *estacoesBin) {
     fclose(fpBin);
 }
 
+// ordena par para normalizacao
 void normalizaPar(struct parEstacao *par) {
     int aux;
-    // ordena par para normalizacao
     if (par->codEstacao1 > par->codEstacao2) {
         aux = par->codEstacao1;
         par->codEstacao1 = par->codEstacao2;

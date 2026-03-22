@@ -25,6 +25,7 @@ struct registro {
     char *nomeLinha;
 };
 
+// struct para o par e estacoes
 struct parEstacao {
     int codEstacao1;
     int codEstacao2;
