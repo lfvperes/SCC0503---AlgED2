@@ -1,6 +1,6 @@
 /*
 Fernando Barbosa Leite - 14570458
-Vamo (coloque o nome pf kk)
+Luís Filipe Vasconcelos Peres - 10310641
 */
 
 #include <stdlib.h>
