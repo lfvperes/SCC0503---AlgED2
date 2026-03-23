@@ -1,3 +1,8 @@
+/*
+Fernando Barbosa Leite - 14570458
+Vamo (coloque o nome pf kk)
+*/
+
 #include <stdlib.h>
 
 int func1(char *estacoesCSV, char *estacoesBin);
