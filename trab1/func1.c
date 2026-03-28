@@ -165,7 +165,7 @@ static void lerRegistroCSV(char *linha, struct registro *dados) {
     dados->codLinhaIntegra = (strlen(token) == 0) ? -1 : atoi(token);
 
     // codEstIntegra - nulo representado por -1
-    token = strsep(&ptr, ",");
+    token = strsep(&ptr, "\n");
     dados->codEstIntegra = (strlen(token) == 0) ? -1 : atoi(token);
 
     // campos de controle: não removido e sem próximo
@@ -335,7 +335,7 @@ int func1(char *estacoesCSV, char *estacoesBin) {
     while ((c = fgetc(fpCSV)) != '\n' && c != EOF);
 
     while (fgets(linha, TAM_REG_DADOS, fpCSV)) {
-
+        linha[strcspn(linha, "\r\n")] = '\0';
         lerRegistroCSV(linha, &dados);
 
         // incrementa nroEstacoes apenas se o nome da estação ainda não foi registrado
