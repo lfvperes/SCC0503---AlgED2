@@ -6,7 +6,7 @@ Luís Filipe Vasconcelos Peres - 10310641
 #include <stdlib.h>
 
 int criaTabela(char *estacoesCSV, char *estacoesBin);
-int listaTabela(char *arquivoEntrada);
+void imprimeTabela(char *arquivoEntrada);
 int listaTabelaFiltro(char *arquivoEntrada, char *n);
 int acessoRRN(char *arquivoEntrada, char *RRN);
 
@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
             criaTabela(argv[2], argv[3]);
             break;
         case 2:
-            listaTabela(argv[2]);
+            imprimeTabela(argv[2]);
             break;
         case 3:
             listaTabelaFiltro(argv[2], argv[3]);
