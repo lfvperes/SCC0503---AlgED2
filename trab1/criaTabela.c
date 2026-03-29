@@ -3,6 +3,8 @@
 #include <string.h>
 #include "registro.h"
 
+void BinarioNaTela(char *arquivo);
+
 // buffer global para o registro de cabeçalho do arquivo binário
 char bufferCabecalho[TAM_REG_CABECALHO];
 
@@ -10,11 +12,11 @@ char bufferCabecalho[TAM_REG_CABECALHO];
 // e escreve no arquivo binário. campos de tamanho variável são precedidos
 // pelo seu tamanho, bytes restantes são preenchidos com $
 static void escreveRegistroDados(FILE *fpBin, const struct registro *dados) {
-
+    
     char bufferDados[TAM_REG_DADOS];
     memset(bufferDados, 0, TAM_REG_DADOS);
 
-    size_t offset = 0;
+    size_t offset = 0; // precisa começar no proxRRN
 
     // campos de tamanho fixo - copiados diretamente com memcpy
     memcpy(bufferDados + offset, &dados->removido, sizeof(dados->removido));
@@ -312,7 +314,7 @@ int parExiste(FILE *fpBin, struct parEstacao parNovo, int nroRegistros) {
 // lê registros do arquivo CSV e escreve no arquivo binário
 // o cabeçalho é atualizado após cada registro escrito para manter
 // consistência em caso de falha. ao final marca o arquivo como consistente
-int func1(char *estacoesCSV, char *estacoesBin) {
+int criaTabela(char *estacoesCSV, char *estacoesBin) {
     struct registro dados;
     struct parEstacao parNovo;
     int nroRegistros = 0, nroEstacoes = 0, nroParesEstacao = 0;
@@ -364,7 +366,8 @@ int func1(char *estacoesCSV, char *estacoesBin) {
     fclose(fpCSV);
     fclose(fpBin);
 
-    imprimeBinario(estacoesBin);
+    // imprimeBinario(estacoesBin);
+    BinarioNaTela(estacoesBin);
 
     return 0;
 }

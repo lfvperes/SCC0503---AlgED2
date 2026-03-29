@@ -5,26 +5,26 @@ Luís Filipe Vasconcelos Peres - 10310641
 
 #include <stdlib.h>
 
-int func1(char *estacoesCSV, char *estacoesBin);
-int func2(char *arquivoEntrada);
-int func3(char *arquivoEntrada, char *n);
-int func4(char *arquivoEntrada, char *RRN);
+int criaTabela(char *estacoesCSV, char *estacoesBin);
+int listaTabela(char *arquivoEntrada);
+int listaTabelaFiltro(char *arquivoEntrada, char *n);
+int acessoRRN(char *arquivoEntrada, char *RRN);
 
 int main(int argc, char *argv[]) {
 
     int funcionalidade = atoi(argv[1]);
     switch(funcionalidade) {
         case 1:
-            func1(argv[2], argv[3]);
+            criaTabela(argv[2], argv[3]);
             break;
         case 2:
-            func2(argv[2]);
+            listaTabela(argv[2]);
             break;
         case 3:
-            func3(argv[2], argv[3]);
+            listaTabelaFiltro(argv[2], argv[3]);
             break;
         case 4:
-            func4(argv[2], argv[3]);
+            acessoRRN(argv[2], argv[3]);
             break;
     }
 
