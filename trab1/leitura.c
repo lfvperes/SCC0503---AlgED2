@@ -12,6 +12,8 @@ char* formataSeNulo(int valor);
 struct registro* buscaRegistros(FILE *fpBin, int campo, void *valor, int nroRegistros, int *encontrados) {
     struct registro* resultado;
     int campoOffset, offset;
+    int tamNomeEstacao, handled = 0;
+    char *nomeEstacao;
 
     for (int i = 0; i < nroRegistros; i++) {
         offset = TAM_REG_CABECALHO + i * TAM_REG_DADOS;
@@ -19,7 +21,6 @@ struct registro* buscaRegistros(FILE *fpBin, int campo, void *valor, int nroRegi
         switch (campo) {
             case CAMPO_REMOVIDO:
                 campoOffset = OFFSET_REMOVIDO;
-                offset += campoOffset;
                 
                 char removido;
                 fseek(fpBin, offset, SEEK_SET);
@@ -28,6 +29,7 @@ struct registro* buscaRegistros(FILE *fpBin, int campo, void *valor, int nroRegi
                     fseek(fpBin, TAM_REG_CABECALHO + nroRegistros * TAM_REG_DADOS, SEEK_SET);
                     
                 }
+                handled = 1;
                 break;
             case CAMPO_PROXIMO:
                 campoOffset = OFFSET_PROXIMO;
@@ -52,13 +54,20 @@ struct registro* buscaRegistros(FILE *fpBin, int campo, void *valor, int nroRegi
                 break;
             case CAMPO_TAM_NOME_ESTACAO:
                 campoOffset = OFFSET_TAM_NOME_ESTACAO;
+                
                 break;
             case CAMPO_NOME_ESTACAO:
                 campoOffset = OFFSET_NOME_ESTACAO;
+                // le tamanho antes de ler a string
+                fseek(fpBin, offset + OFFSET_TAM_NOME_ESTACAO, SEEK_SET);
+                fread(&tamNomeEstacao, sizeof(int), 1, fpBin);
+                
+                // le string na posicao correta
+                fseek(fpBin, offset + campoOffset, SEEK_SET);
+                fread(nomeEstacao, tamNomeEstacao, 1, fpBin);
                 break;
             case CAMPO_TAM_NOME_LINHA:
                 fseek(fpBin, offset + OFFSET_TAM_NOME_ESTACAO, SEEK_SET);
-                int tamNomeEstacao;
                 fread(&tamNomeEstacao, sizeof(int), 1, fpBin);
                 campoOffset = OFFSET_NOME_ESTACAO + tamNomeEstacao;
                 break;
