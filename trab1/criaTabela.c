@@ -6,7 +6,7 @@
 void BinarioNaTela(char *arquivo);
 
 // buffer global para o registro de cabeçalho do arquivo binário
-char bufferCabecalho[TAM_REG_CABECALHO];
+extern char bufferCabecalho[TAM_REG_CABECALHO];
 
 // serializa um registro de dados em um buffer de tamanho fixo (TAM_REG_DADOS)
 // e escreve no arquivo binário. campos de tamanho variável são precedidos
@@ -366,7 +366,7 @@ int criaTabela(char *estacoesCSV, char *estacoesBin) {
     fclose(fpCSV);
     fclose(fpBin);
 
-    // imprimeBinario(estacoesBin);
+    imprimeBinario(estacoesBin);
     BinarioNaTela(estacoesBin);
 
     return 0;
