@@ -4,43 +4,53 @@
 
 #define MAX_LINHA 1024 // numero maximo de caracteres na entrada
 #define MAX_ITENS 100
+
+void ScanQuoteString(char *str);
+
 int listaTabelaFiltro(char *arquivoEntrada, int n) {
-    char linha[MAX_LINHA];    // buffer para a entrada
+    char bufferLinha[MAX_LINHA];    // buffer para a entrada
+    int m;
     FILE *fpBin = fopen(arquivoEntrada, "rb");    
+    
+    if (fpBin == NULL) {
+        printf("Falha no processamento do arquivo.");
+        return 1;
+    }
 
     for (int i = 0; i < n; i++) {
         
-        // lê linha inteira do stdin
-        if (!fgets(linha, sizeof(linha), stdin)) {
-            printf("Falha no processamento do arquivo.");
-            return 1;
-        }
-        
-        // remove "\r\n" que fgets deixa no final da string
-        linha[strcspn(linha, "\r\n")] = '\0';
-
-        // primeiro token: numero m
-        char *token = strtok(linha, " ");
-        if (!token) {
-            printf("Falha no processamento do arquivo.");
-            return 1;
-        }
-
-        // converte m para inteiro
-        int m = (int)strtol(token, NULL, 10);
+        // lê m direto do stdin
+        scanf("%d", &m);
 
         // aloca m ponteiros para strings (os nomes)
         char **nomeCampo = malloc(m * sizeof(char *));
 
-        // aloca m strings para os valores (tamanho fixo por enquanto)
+        // aloca m ponteiros para os valores
         char **valorCampo = malloc(m * sizeof(char *));
 
-        // verifica se as alocações funcionaram
-        if (!nomeCampo || !valorCampo) {
-            printf("Falha na alocação de memória.\n");
-            return 1;
+        for(int j = 0; j < m; j++) {
+            // lê nome do campos
+            scanf("%s", bufferLinha);
+            // aloca o necessário e copia
+            nomeCampo[i] = malloc(strlen(bufferLinha) + 1);
+            strcpy(nomeCampo[i], bufferLinha);
+
+            // lê valor do campo
+            ScanQuoteString(bufferLinha);
+            // aloca o necessário e copia com +1 para \0
+            valorCampo[i] = malloc(strlen(bufferLinha) + 1);
+            strcpy(valorCampo[i], bufferLinha);
         }
-        
+
+        // libera strings individuais
+        for (int j = 0; j < m; j++) {
+            free(nomeCampo[i]);
+            free(valorCampo[i]);
+        }
+
+        // libera o array de ponteiros
+        free(nomeCampo);
+        free(valorCampo);        
     }
 
     fclose(fpBin);
