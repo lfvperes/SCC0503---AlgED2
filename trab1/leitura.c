@@ -49,9 +49,30 @@ int verificaCampo(FILE *fpBin, int offsetRegistro, CampoRegistro campo, char *va
             campoOffset = OFFSET_COD_EST_INTEGRA;  
             break;
 
-        // casos especiais: trataremos depois
-        case CAMPO_REMOVIDO:
-        case CAMPO_NOME_ESTACAO:
+        case CAMPO_REMOVIDO: {
+            char removidoLido;
+            fseek(fpBin, offsetRegistro + OFFSET_REMOVIDO, SEEK_SET);
+            fread(&removidoLido, sizeof(char), 1, fpBin);
+            return removidoLido == valor[0]; // compara o char diretamente
+        }
+        case CAMPO_NOME_ESTACAO: {
+            // lê o tamanho
+            int tamNomeEstacao;
+            fseek(fpBin, offsetRegistro + OFFSET_TAM_NOME_ESTACAO, SEEK_SET);
+            fread(&tamNomeEstacao, sizeof(int), 1, fpBin);
+        
+            // aloca tamanho necessário
+            char *nomeEstacao = malloc(tamNomeEstacao + 1);
+            // lê string
+            fseek(fpBin, offsetRegistro + OFFSET_NOME_ESTACAO, SEEK_SET);
+            fread(nomeEstacao, tamNomeEstacao, 1, fpBin);
+            nomeEstacao[tamNomeEstacao] = '\0';
+        
+            // compara string lida
+            int resultado = strcmp(nomeEstacao, valor) == 0;
+            free(nomeEstacao);
+            return resultado;
+        }
         case CAMPO_NOME_LINHA:
             return 0;
 
