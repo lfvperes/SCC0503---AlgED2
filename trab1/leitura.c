@@ -8,80 +8,47 @@ char bufferCabecalho[TAM_REG_CABECALHO];
 
 char* formataSeNulo(int valor);
 
+CampoRegistro nomeCampoParaEnum(char *nome) {
+    if (strcmp(nome, "removido") == 0)        return CAMPO_REMOVIDO;
+    if (strcmp(nome, "proximo") == 0)         return CAMPO_PROXIMO;
+    if (strcmp(nome, "codEstacao") == 0)      return CAMPO_COD_ESTACAO;
+    if (strcmp(nome, "codLinha") == 0)        return CAMPO_COD_LINHA;
+    if (strcmp(nome, "codProxEstacao") == 0)  return CAMPO_COD_PROX_ESTACAO;
+    if (strcmp(nome, "distProxEstacao") == 0) return CAMPO_DIST_PROX_ESTACAO;
+    if (strcmp(nome, "codLinhaIntegra") == 0) return CAMPO_COD_LINHA_INTEGRA;
+    if (strcmp(nome, "codEstIntegra") == 0)   return CAMPO_COD_EST_INTEGRA;
+    if (strcmp(nome, "nomeEstacao") == 0)     return CAMPO_NOME_ESTACAO;
+    if (strcmp(nome, "nomeLinha") == 0)       return CAMPO_NOME_LINHA;
+    return -1; // campo desconhecido
+}
 
-struct registro* buscaRegistros(FILE *fpBin, int campo, void *valor, int nroRegistros, int *encontrados) {
-    struct registro* resultado;
-    int campoOffset, offset;
-    int tamNomeEstacao, handled = 0;
-    char *nomeEstacao;
+int verificaCampo(FILE *fpBin, int offsetRegistro, CampoRegistro campo, char *valor) {
+    
+}
+
+struct registro* buscaRegistros(FILE *fpBin, char **nomeCampo, char **valorCampo, int m, int nroRegistros, int *encontrados) {
+    *encontrados = 0;
 
     for (int i = 0; i < nroRegistros; i++) {
-        offset = TAM_REG_CABECALHO + i * TAM_REG_DADOS;
-        
-        switch (campo) {
-            case CAMPO_REMOVIDO:
-                campoOffset = OFFSET_REMOVIDO;
-                
-                char removido;
-                fseek(fpBin, offset, SEEK_SET);
-                fread(&removido, sizeof(char), 1, fpBin);
-                if (removido == *(char*)valor) {
-                    fseek(fpBin, TAM_REG_CABECALHO + nroRegistros * TAM_REG_DADOS, SEEK_SET);
-                    
-                }
-                handled = 1;
-                break;
-            case CAMPO_PROXIMO:
-                campoOffset = OFFSET_PROXIMO;
-                break;
-            case CAMPO_COD_ESTACAO:
-                campoOffset = OFFSET_COD_ESTACAO;
-                break;
-            case CAMPO_COD_LINHA:
-                campoOffset = OFFSET_COD_LINHA;
-                break;
-            case CAMPO_COD_PROX_ESTACAO:
-                campoOffset = OFFSET_COD_PROX_ESTACAO;
-                break;
-            case CAMPO_DIST_PROX_ESTACAO:
-                campoOffset = OFFSET_DIST_PROX_ESTACAO;
-                break;
-            case CAMPO_COD_LINHA_INTEGRA:
-                campoOffset = OFFSET_COD_LINHA_INTEGRA;
-                break;
-            case CAMPO_COD_EST_INTEGRA:
-                campoOffset = OFFSET_COD_EST_INTEGRA;
-                break;
-            case CAMPO_TAM_NOME_ESTACAO:
-                campoOffset = OFFSET_TAM_NOME_ESTACAO;
-                
-                break;
-            case CAMPO_NOME_ESTACAO:
-                campoOffset = OFFSET_NOME_ESTACAO;
-                // le tamanho antes de ler a string
-                fseek(fpBin, offset + OFFSET_TAM_NOME_ESTACAO, SEEK_SET);
-                fread(&tamNomeEstacao, sizeof(int), 1, fpBin);
-                
-                // le string na posicao correta
-                fseek(fpBin, offset + campoOffset + sizeof(int), SEEK_SET);
-                fread(nomeEstacao, tamNomeEstacao, 1, fpBin);
-                break;
-            case CAMPO_TAM_NOME_LINHA:
-                fseek(fpBin, offset + OFFSET_TAM_NOME_ESTACAO, SEEK_SET);
-                fread(&tamNomeEstacao, sizeof(int), 1, fpBin);
-                campoOffset = OFFSET_NOME_ESTACAO + tamNomeEstacao;
-                break;
-            case CAMPO_NOME_LINHA:
-                fseek(fpBin, offset + OFFSET_TAM_NOME_ESTACAO, SEEK_SET);                
-                fread(&tamNomeEstacao, sizeof(int), 1, fpBin);
-                campoOffset = OFFSET_NOME_ESTACAO + tamNomeEstacao + sizeof(int);
-                break;
+        int offset = TAM_REG_CABECALHO + i * TAM_REG_DADOS;
+        int satisfazTodos = 1; // assume que o registro passa até provar o contrário
+
+        for (int j = 0; j < m; j++) {
+            CampoRegistro campo = nomeCampoParaEnum(nomeCampo[j]);
+            if (campo == -1)
+                return NULL;
+            int satisfaz = verificaCampo(fpBin, offset, campo, valorCampo[j]);
+
+            if (!satisfaz) {
+                satisfazTodos = 0;
+                break; // AND: basta um falhar para descartar o registro
+            }
         }
-        offset += campoOffset;
+
+        if (satisfazTodos) {
+            // aqui vamos adicionar o registro ao resultado
+        }
     }
-
-
-    return resultado;
 }
 
 // lê arquivo binário e imprime registros de dados formatados
