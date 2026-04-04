@@ -63,7 +63,7 @@ struct registro* buscaRegistros(FILE *fpBin, int campo, void *valor, int nroRegi
                 fread(&tamNomeEstacao, sizeof(int), 1, fpBin);
                 
                 // le string na posicao correta
-                fseek(fpBin, offset + campoOffset, SEEK_SET);
+                fseek(fpBin, offset + campoOffset + sizeof(int), SEEK_SET);
                 fread(nomeEstacao, tamNomeEstacao, 1, fpBin);
                 break;
             case CAMPO_TAM_NOME_LINHA:
