@@ -23,7 +23,45 @@ CampoRegistro nomeCampoParaEnum(char *nome) {
 }
 
 int verificaCampo(FILE *fpBin, int offsetRegistro, CampoRegistro campo, char *valor) {
-    
+    int valorLido;
+    int campoOffset;
+
+    switch (campo) {
+        case CAMPO_PROXIMO:          
+            campoOffset = OFFSET_PROXIMO;          
+            break;
+        case CAMPO_COD_ESTACAO:      
+            campoOffset = OFFSET_COD_ESTACAO;      
+            break;
+        case CAMPO_COD_LINHA:        
+            campoOffset = OFFSET_COD_LINHA;        
+            break;
+        case CAMPO_COD_PROX_ESTACAO: 
+            campoOffset = OFFSET_COD_PROX_ESTACAO; 
+            break;
+        case CAMPO_DIST_PROX_ESTACAO:
+            campoOffset = OFFSET_DIST_PROX_ESTACAO;
+            break;
+        case CAMPO_COD_LINHA_INTEGRA:
+            campoOffset = OFFSET_COD_LINHA_INTEGRA;
+            break;
+        case CAMPO_COD_EST_INTEGRA:  
+            campoOffset = OFFSET_COD_EST_INTEGRA;  
+            break;
+
+        // casos especiais: trataremos depois
+        case CAMPO_REMOVIDO:
+        case CAMPO_NOME_ESTACAO:
+        case CAMPO_NOME_LINHA:
+            return 0;
+
+        default: return 0;
+    }
+
+    // lógica comum a todos os inteiros fixos
+    fseek(fpBin, offsetRegistro + campoOffset, SEEK_SET);
+    fread(&valorLido, sizeof(int), 1, fpBin);
+    return valorLido == (int)strtol(valor, NULL, 10);
 }
 
 struct registro* buscaRegistros(FILE *fpBin, char **nomeCampo, char **valorCampo, int m, int nroRegistros, int *encontrados) {
