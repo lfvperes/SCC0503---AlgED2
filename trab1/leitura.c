@@ -34,6 +34,8 @@ int verificaCampo(FILE *fpBin, int offsetRegistro, CampoRegistro campo, char *va
     int valorLido;
     int campoOffset;
 
+    // NULO no input vira "" pelo ScanQuoteString — corresponde ao sentinela -1
+    int valorEhNulo = (valor[0] == '\0') || (strcmp(valor, "NULO") == 0);
     switch (campo) {
         // campos inteiros fixos: apenas define o offset e cai na lógica comum abaixo
         case CAMPO_PROXIMO:          
@@ -109,7 +111,8 @@ int verificaCampo(FILE *fpBin, int offsetRegistro, CampoRegistro campo, char *va
     // lógica comum aos campos inteiros fixos
     fseek(fpBin, offsetRegistro + campoOffset, SEEK_SET);
     fread(&valorLido, sizeof(int), 1, fpBin);
-    return valorLido == (int)strtol(valor, NULL, 10);
+    int valorComparar = valorEhNulo ? -1 : (int)strtol(valor, NULL, 10);
+    return valorLido == valorComparar;
 }
 
 // percorre os registros do arquivo duas vezes: primeiro conta os que satisfazem
@@ -147,6 +150,9 @@ struct registro* buscaRegistros(FILE *fpBin, char **nomeCampo, char **valorCampo
             (*encontrados)++;
     }
 
+    if (*encontrados == 0)
+        return NULL;
+
     // passe 2: aloca e preenche o array com os registros encontrados
     struct registro *resultado = malloc(*encontrados * sizeof(struct registro));
     int idx = 0;
@@ -170,8 +176,9 @@ struct registro* buscaRegistros(FILE *fpBin, char **nomeCampo, char **valorCampo
             }
         }
 
-        if (satisfazTodos)
+        if (satisfazTodos) {
             resultado[idx++] = leRegistro(fpBin, offset);
+        }
     }
 
     return resultado;
@@ -311,24 +318,32 @@ int listaTabelaFiltro(char *arquivoEntrada, int n) {
         // aloca m ponteiros para os valores
         char **valorCampo = malloc(m * sizeof(char *));
 
-        for(int j = 0; j < m; j++) {
+        for (int j = 0; j < m; j++) {
+
             // lê nome do campos
             scanf("%s", bufferLinha);
             // aloca o necessário e copia
-            nomeCampo[i] = malloc(strlen(bufferLinha) + 1);
-            strcpy(nomeCampo[i], bufferLinha);
+            nomeCampo[j] = malloc(strlen(bufferLinha) + 1);
+            strcpy(nomeCampo[j], bufferLinha);
 
             // lê valor do campo
-            ScanQuoteString(bufferLinha);
+            // usa ScanQuoteString para campos string, scanf para os demais
+            if (strcmp(nomeCampo[j], "nomeEstacao") == 0 || strcmp(nomeCampo[j], "nomeLinha") == 0) {
+                ScanQuoteString(bufferLinha);
+            } else {
+                scanf("%s", bufferLinha);
+            }
             // aloca o necessário e copia com +1 para \0
-            valorCampo[i] = malloc(strlen(bufferLinha) + 1);
-            strcpy(valorCampo[i], bufferLinha);
+            valorCampo[j] = malloc(strlen(bufferLinha) + 1);
+            strcpy(valorCampo[j], bufferLinha);
         }
 
         // busca registros que satisfazem todos os filtros
         struct registro *resultado = buscaRegistros(fpBin, nomeCampo, valorCampo, m, proxRRN, &encontrados);
 
-        if (resultado == NULL) {
+        if (resultado == NULL && encontrados == 0) {
+            printf("Registro inexistente.\n");
+        } else if (resultado == NULL) {
             fprintf(stderr, "Erro na busca.\n");
         } else {
             // imprime e libera cada registro encontrado
@@ -342,8 +357,8 @@ int listaTabelaFiltro(char *arquivoEntrada, int n) {
 
         // libera strings individuais
         for (int j = 0; j < m; j++) {
-            free(nomeCampo[i]);
-            free(valorCampo[i]);
+            free(nomeCampo[j]);
+            free(valorCampo[j]);
         }
 
         // libera o array de ponteiros
