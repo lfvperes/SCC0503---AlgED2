@@ -131,12 +131,67 @@ struct registro* buscaRegistros(FILE *fpBin, char **nomeCampo, char **valorCampo
     }
 }
 
+// lê o registro na posição offset do arquivo e retorna um struct registro preenchido
+struct registro leRegistro(FILE *fpBin, int offset) {
+    struct registro reg;
+    fseek(fpBin, offset, SEEK_SET);
+    
+    // lê o marcador de remoção lógica
+    fread(&reg.removido, sizeof(char), 1, fpBin);
+    // lê o ponteiro para o próximo registro na lista de removidos
+    fread(&reg.proximo, sizeof(int), 1, fpBin);
+    // lê os campos de tamanho fixo
+    fread(&reg.codEstacao, sizeof(int), 1, fpBin);
+    fread(&reg.codLinha, sizeof(int), 1, fpBin);
+    fread(&reg.codProxEstacao, sizeof(int), 1, fpBin);
+    fread(&reg.distProxEstacao, sizeof(int), 1, fpBin);
+    fread(&reg.codLinhaIntegra, sizeof(int), 1, fpBin);
+    fread(&reg.codEstIntegra, sizeof(int), 1, fpBin);
+    
+    // lê o nome da estação: primeiro o tamanho, depois a string
+    fread(&reg.tamNomeEstacao, sizeof(int), 1, fpBin);
+    reg.nomeEstacao = malloc(reg.tamNomeEstacao + 1);
+    fread(reg.nomeEstacao, reg.tamNomeEstacao, 1, fpBin);
+    reg.nomeEstacao[reg.tamNomeEstacao] = '\0';
+    
+    // lê o nome da linha: primeiro o tamanho, depois a string
+    fread(&reg.tamNomeLinha, sizeof(int), 1, fpBin);
+    reg.nomeLinha = malloc(reg.tamNomeLinha + 1);
+    fread(reg.nomeLinha, reg.tamNomeLinha, 1, fpBin);
+    reg.nomeLinha[reg.tamNomeLinha] = '\0';
+
+    // descarta bytes de padding para manter alinhamento no tamanho fixo do registro
+    int restante = TAM_REG_DADOS - sizeof(char) - 9 * sizeof(int) - reg.tamNomeEstacao - reg.tamNomeLinha;
+    char lixo[restante];
+    fread(lixo, sizeof(char), restante, fpBin);
+
+    return reg;
+}
+
+// imprime os campos de um registro formatados em uma linha
+void imprimeRegistro(struct registro reg) {
+    char buffSaida[TAM_REG_DADOS];
+    int pos = 0;    // posição atual de escrita no buffer de saída
+    
+    // monta a linha de saída no buffer, usando formataSeNulo para campos opcionais
+    pos += snprintf(buffSaida + pos, sizeof(buffSaida) - pos, "%d ", reg.codEstacao);
+    pos += snprintf(buffSaida + pos, sizeof(buffSaida) - pos, "%s ", reg.nomeEstacao);
+    pos += snprintf(buffSaida + pos, sizeof(buffSaida) - pos, "%d ", reg.codLinha);
+    pos += snprintf(buffSaida + pos, sizeof(buffSaida) - pos, "%s ", reg.nomeLinha);
+    pos += snprintf(buffSaida + pos, sizeof(buffSaida) - pos, "%s ", formataSeNulo(reg.codProxEstacao));
+    pos += snprintf(buffSaida + pos, sizeof(buffSaida) - pos, "%s ", formataSeNulo(reg.distProxEstacao));
+    pos += snprintf(buffSaida + pos, sizeof(buffSaida) - pos, "%s ", formataSeNulo(reg.codLinhaIntegra));
+    pos += snprintf(buffSaida + pos, sizeof(buffSaida) - pos, "%s", formataSeNulo(reg.codEstIntegra));
+    
+    // imprime o registro completo 
+    printf("%s\n", buffSaida);
+}
+
 // lê arquivo binário e imprime registros de dados formatados
 void imprimeTabela(char *arquivoEntrada) {
     struct registro dados;
     FILE *fpBin = fopen(arquivoEntrada, "rb");
     char buffSaida[TAM_REG_DADOS]; // buffer para montar a linha de saída de cada registro
-    int pos = 0; // posição atual de escrita no buffer de saída
 
     // lê cabeçalho do arquivo para extrair metadados
     fread(bufferCabecalho, TAM_REG_CABECALHO, 1, fpBin);
@@ -157,55 +212,16 @@ void imprimeTabela(char *arquivoEntrada) {
 
     // itera sobre registros existentes
     for (int i = 0; i < proxRRN; i++) {
-        // lê o marcador de remoção lógica
-        fread(&dados.removido, sizeof(dados.removido), 1, fpBin);
+        int offset = TAM_REG_CABECALHO + i * TAM_REG_DADOS;
+        struct registro dados = leRegistro(fpBin, offset);
+
         if (dados.removido == '1') {
-            // registro removido: avança o ponteiro para o próximo registro sem ler os campos
-            fseek(fpBin, TAM_REG_DADOS - sizeof(char), SEEK_CUR);
+            free(dados.nomeEstacao);
+            free(dados.nomeLinha);
             continue;
         }
         
-        // lê o ponteiro para o próximo registro na lista de removidos
-        fread(&dados.proximo, sizeof(dados.proximo), 1, fpBin);
-
-        // lê os campos de tamanho fixo
-        fread(&dados.codEstacao, sizeof(dados.codEstacao), 1, fpBin);
-        fread(&dados.codLinha, sizeof(dados.codLinha), 1, fpBin);
-        fread(&dados.codProxEstacao, sizeof(dados.codProxEstacao), 1, fpBin);
-        fread(&dados.distProxEstacao, sizeof(dados.distProxEstacao), 1, fpBin);
-        fread(&dados.codLinhaIntegra, sizeof(dados.codLinhaIntegra), 1, fpBin);
-        fread(&dados.codEstIntegra, sizeof(dados.codEstIntegra), 1, fpBin);
-        
-        // lê o nome da estação: primeiro o tamanho, depois a string
-        fread(&dados.tamNomeEstacao, sizeof(dados.tamNomeEstacao), 1, fpBin);
-        dados.nomeEstacao = malloc(dados.tamNomeEstacao + 1);
-        fread(dados.nomeEstacao, dados.tamNomeEstacao, 1, fpBin);
-        dados.nomeEstacao[dados.tamNomeEstacao] = '\0'; // termina a string manualmente
-        
-        // lê o nome da linha: primeiro o tamanho, depois a string
-        fread(&dados.tamNomeLinha, sizeof(dados.tamNomeLinha), 1, fpBin);
-        dados.nomeLinha = malloc(dados.tamNomeLinha + 1);
-        fread(dados.nomeLinha, dados.tamNomeLinha, 1, fpBin);
-        dados.nomeLinha[dados.tamNomeLinha] = '\0'; // termina a string manualmente
-        
-        // descarta os bytes de padding para manter o alinhamento no tamanho fixo do registro
-        int restante = TAM_REG_DADOS - sizeof(char) - 9 * sizeof(int) - dados.tamNomeEstacao - dados.tamNomeLinha;
-        char lixo[restante+1];
-        fread(lixo, sizeof(char), restante, fpBin);
-        
-        // monta a linha de saída no buffer, usando formataSeNulo para campos opcionais
-        pos += snprintf(buffSaida + pos, sizeof(buffSaida) - pos, "%d ", dados.codEstacao);
-        pos += snprintf(buffSaida + pos, sizeof(buffSaida) - pos, "%s ", dados.nomeEstacao);
-        pos += snprintf(buffSaida + pos, sizeof(buffSaida) - pos, "%d ", dados.codLinha);
-        pos += snprintf(buffSaida + pos, sizeof(buffSaida) - pos, "%s ", dados.nomeLinha);
-        pos += snprintf(buffSaida + pos, sizeof(buffSaida) - pos, "%s ", formataSeNulo(dados.codProxEstacao));
-        pos += snprintf(buffSaida + pos, sizeof(buffSaida) - pos, "%s ", formataSeNulo(dados.distProxEstacao));
-        pos += snprintf(buffSaida + pos, sizeof(buffSaida) - pos, "%s ", formataSeNulo(dados.codLinhaIntegra));
-        pos += snprintf(buffSaida + pos, sizeof(buffSaida) - pos, "%s", formataSeNulo(dados.codEstIntegra));
-        
-        // imprime o registro completo e reinicia o buffer para o próximo
-        printf("%s\n", buffSaida);
-        pos = 0;
+        imprimeRegistro(dados);
         
         free(dados.nomeEstacao);
         free(dados.nomeLinha);
