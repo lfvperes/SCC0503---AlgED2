@@ -22,11 +22,14 @@ CampoRegistro nomeCampoParaEnum(char *nome) {
     return -1; // campo desconhecido
 }
 
+// Lê o campo indicado do registro na posição offsetRegistro e compara com valor.
+// Retorna 1 se o valor bate, 0 caso contrário.
 int verificaCampo(FILE *fpBin, int offsetRegistro, CampoRegistro campo, char *valor) {
     int valorLido;
     int campoOffset;
 
     switch (campo) {
+        // campos inteiros fixos: apenas define o offset e cai na lógica comum abaixo
         case CAMPO_PROXIMO:          
             campoOffset = OFFSET_PROXIMO;          
             break;
@@ -53,33 +56,51 @@ int verificaCampo(FILE *fpBin, int offsetRegistro, CampoRegistro campo, char *va
             char removidoLido;
             fseek(fpBin, offsetRegistro + OFFSET_REMOVIDO, SEEK_SET);
             fread(&removidoLido, sizeof(char), 1, fpBin);
-            return removidoLido == valor[0]; // compara o char diretamente
+            return removidoLido == valor[0]; // compara char diretamente com valor[0]
         }
+
         case CAMPO_NOME_ESTACAO: {
-            // lê o tamanho
             int tamNomeEstacao;
             fseek(fpBin, offsetRegistro + OFFSET_TAM_NOME_ESTACAO, SEEK_SET);
             fread(&tamNomeEstacao, sizeof(int), 1, fpBin);
-        
-            // aloca tamanho necessário
+
             char *nomeEstacao = malloc(tamNomeEstacao + 1);
-            // lê string
             fseek(fpBin, offsetRegistro + OFFSET_NOME_ESTACAO, SEEK_SET);
             fread(nomeEstacao, tamNomeEstacao, 1, fpBin);
             nomeEstacao[tamNomeEstacao] = '\0';
-        
-            // compara string lida
+
             int resultado = strcmp(nomeEstacao, valor) == 0;
             free(nomeEstacao);
             return resultado;
         }
-        case CAMPO_NOME_LINHA:
-            return 0;
 
+        case CAMPO_NOME_LINHA: {
+            // precisa ler tamNomeEstacao para calcular onde nomeLinha começa
+            int tamNomeEstacao;
+            fseek(fpBin, offsetRegistro + OFFSET_TAM_NOME_ESTACAO, SEEK_SET);
+            fread(&tamNomeEstacao, sizeof(int), 1, fpBin);
+
+            int offsetTamNomeLinha = OFFSET_NOME_ESTACAO + tamNomeEstacao;
+
+            int tamNomeLinha;
+            fseek(fpBin, offsetRegistro + offsetTamNomeLinha, SEEK_SET);
+            fread(&tamNomeLinha, sizeof(int), 1, fpBin);
+
+            // ponteiro já está na posição certa após ler tamNomeLinha
+            char *nomeLinha = malloc(tamNomeLinha + 1);
+            fread(nomeLinha, tamNomeLinha, 1, fpBin);
+            nomeLinha[tamNomeLinha] = '\0';
+
+            int resultado = strcmp(nomeLinha, valor) == 0;
+            free(nomeLinha);
+            return resultado;
+        }
+
+        // CAMPO_TAM_NOME_ESTACAO e CAMPO_TAM_NOME_LINHA não são filtráveis
         default: return 0;
     }
 
-    // lógica comum a todos os inteiros fixos
+    // lógica comum aos campos inteiros fixos
     fseek(fpBin, offsetRegistro + campoOffset, SEEK_SET);
     fread(&valorLido, sizeof(int), 1, fpBin);
     return valorLido == (int)strtol(valor, NULL, 10);
