@@ -288,13 +288,17 @@ char* formataSeNulo(int valor) {
 
 int listaTabelaFiltro(char *arquivoEntrada, int n) {
     char bufferLinha[MAX_LINHA];    // buffer para a entrada
-    int m;
+    int m, encontrados;
     FILE *fpBin = fopen(arquivoEntrada, "rb");    
     
     if (fpBin == NULL) {
         printf("Falha no processamento do arquivo.");
         return 1;
     }
+
+    // lê cabeçalho para extrair proxRRN
+    fread(bufferCabecalho, TAM_REG_CABECALHO, 1, fpBin);
+    int proxRRN = *(int *)(bufferCabecalho + sizeof(char) + sizeof(int));
 
     for (int i = 0; i < n; i++) {
         
@@ -319,6 +323,21 @@ int listaTabelaFiltro(char *arquivoEntrada, int n) {
             // aloca o necessário e copia com +1 para \0
             valorCampo[i] = malloc(strlen(bufferLinha) + 1);
             strcpy(valorCampo[i], bufferLinha);
+        }
+
+        // busca registros que satisfazem todos os filtros
+        struct registro *resultado = buscaRegistros(fpBin, nomeCampo, valorCampo, m, proxRRN, &encontrados);
+
+        if (resultado == NULL) {
+            fprintf(stderr, "Erro na busca.\n");
+        } else {
+            // imprime e libera cada registro encontrado
+            for (int j = 0; j < encontrados; j++) {
+                imprimeRegistro(resultado[j]);
+                free(resultado[j].nomeEstacao);
+                free(resultado[j].nomeLinha);
+            }
+            free(resultado);
         }
 
         // libera strings individuais
