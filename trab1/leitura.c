@@ -7,6 +7,7 @@
 char bufferCabecalho[TAM_REG_CABECALHO];
 
 char* formataSeNulo(int valor);
+struct registro leRegistro(FILE *fpBin, int offset);
 
 CampoRegistro nomeCampoParaEnum(char *nome) {
     if (strcmp(nome, "removido") == 0)        return CAMPO_REMOVIDO;
@@ -106,29 +107,69 @@ int verificaCampo(FILE *fpBin, int offsetRegistro, CampoRegistro campo, char *va
     return valorLido == (int)strtol(valor, NULL, 10);
 }
 
+// percorre os registros do arquivo duas vezes: primeiro conta os que satisfazem
+// todos os m filtros, depois aloca e preenche o array de resultados.
+// retorna NULL se algum campo for desconhecido.
 struct registro* buscaRegistros(FILE *fpBin, char **nomeCampo, char **valorCampo, int m, int nroRegistros, int *encontrados) {
     *encontrados = 0;
 
+    // passe 1: conta os registros que passam no filtro
     for (int i = 0; i < nroRegistros; i++) {
         int offset = TAM_REG_CABECALHO + i * TAM_REG_DADOS;
+
+        // ignora registros removidos
+        char removido;
+        fseek(fpBin, offset + OFFSET_REMOVIDO, SEEK_SET);
+        fread(&removido, sizeof(char), 1, fpBin);
+        if (removido == '1') continue;
+
         int satisfazTodos = 1; // assume que o registro passa até provar o contrário
 
         for (int j = 0; j < m; j++) {
             CampoRegistro campo = nomeCampoParaEnum(nomeCampo[j]);
-            if (campo == -1)
+            if (campo == -1) {
+                fprintf(stderr, "Campo desconhecido: %s\n", nomeCampo[j]);
                 return NULL;
-            int satisfaz = verificaCampo(fpBin, offset, campo, valorCampo[j]);
+            }
 
-            if (!satisfaz) {
+            if (!verificaCampo(fpBin, offset, campo, valorCampo[j])) {
                 satisfazTodos = 0;
                 break; // AND: basta um falhar para descartar o registro
             }
         }
 
-        if (satisfazTodos) {
-            // aqui vamos adicionar o registro ao resultado
-        }
+        if (satisfazTodos) 
+            (*encontrados)++;
     }
+
+    // passe 2: aloca e preenche o array com os registros encontrados
+    struct registro *resultado = malloc(*encontrados * sizeof(struct registro));
+    int idx = 0;
+
+    for (int i = 0; i < nroRegistros; i++) {
+        int offset = TAM_REG_CABECALHO + i * TAM_REG_DADOS;
+
+        // ignora registros removidos
+        char removido;
+        fseek(fpBin, offset + OFFSET_REMOVIDO, SEEK_SET);
+        fread(&removido, sizeof(char), 1, fpBin);
+        if (removido == '1') continue;
+
+        int satisfazTodos = 1; // assume que o registro passa até provar o contrário
+
+        for (int j = 0; j < m; j++) {
+            CampoRegistro campo = nomeCampoParaEnum(nomeCampo[j]);
+            if (!verificaCampo(fpBin, offset, campo, valorCampo[j])) {
+                satisfazTodos = 0;
+                break; // AND: basta um falhar para descartar o registro
+            }
+        }
+
+        if (satisfazTodos)
+            resultado[idx++] = leRegistro(fpBin, offset);
+    }
+
+    return resultado;
 }
 
 // lê o registro na posição offset do arquivo e retorna um struct registro preenchido
