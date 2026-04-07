@@ -369,7 +369,7 @@ int listaTabelaFiltro(char *arquivoEntrada, int n) {
         if (resultado == NULL && encontrados == 0) {
             printf("Registro inexistente.\n");
         } else if (resultado == NULL) {
-            fprintf(stderr, "Erro na busca.\n");
+            printf("Falha no processamento do arquivo.\n");
         } else {
             // imprime e libera cada registro encontrado
             for (int j = 0; j < encontrados; j++) {
