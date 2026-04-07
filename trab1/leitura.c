@@ -372,3 +372,23 @@ int listaTabelaFiltro(char *arquivoEntrada, int n) {
     fclose(fpBin);
     return 0;
 }
+
+int acessoRRN(char *arquivoEntrada, int RRN) {
+    
+    FILE *fpBin = fopen(arquivoEntrada, "rb");
+
+    int offset = TAM_REG_CABECALHO + RRN * TAM_REG_DADOS;
+    struct registro dados = leRegistro(fpBin, offset);
+
+    if (dados.removido == '1') {
+        free(dados.nomeEstacao);
+        free(dados.nomeLinha);
+    }
+    
+    imprimeRegistro(dados);
+    
+    free(dados.nomeEstacao);
+    free(dados.nomeLinha);
+
+    return 0;
+}

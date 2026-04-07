@@ -9,7 +9,7 @@ Luís Filipe Vasconcelos Peres - 10310641
 int criaTabela(char *estacoesCSV, char *estacoesBin);
 void imprimeTabela(char *arquivoEntrada);
 int listaTabelaFiltro(char *arquivoEntrada, int n);
-int acessoRRN(char *arquivoEntrada, char *RRN);
+int acessoRRN(char *arquivoEntrada, int RRN);
 
 int main(){
     int argc = 0;
@@ -30,7 +30,7 @@ int main(){
             listaTabelaFiltro(argv[1], atoi(argv[2]));
             break;
         case 4:
-            acessoRRN(argv[1], argv[2]);
+            acessoRRN(argv[1], atoi(argv[2]));
             break;
     }
 
