@@ -1,4 +1,4 @@
 all:
-	gcc -o programaTrab *.c -lmd
+	gcc -o programaTrab *.c -lm
 run:
 	./programaTrab

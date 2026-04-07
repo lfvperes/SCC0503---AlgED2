@@ -1,3 +1,8 @@
+/*
+Fernando Barbosa Leite - 14570458
+Luís Filipe Vasconcelos Peres - 10310641
+*/
+
 #ifndef REGISTRO_CABECALHO
 #define REGISTRO_CABECALHO
 

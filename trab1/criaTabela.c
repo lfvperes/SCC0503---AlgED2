@@ -1,3 +1,8 @@
+/*
+Fernando Barbosa Leite - 14570458
+Luís Filipe Vasconcelos Peres - 10310641
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
