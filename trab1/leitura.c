@@ -251,6 +251,12 @@ void imprimeTabela(char *arquivoEntrada) {
     FILE *fpBin = fopen(arquivoEntrada, "rb");
     char buffSaida[TAM_REG_DADOS]; // buffer para montar a linha de saída de cada registro
 
+    
+    if (fpBin == NULL) {
+        printf("Falha no processamento do arquivo.");
+        return;
+    }
+
     // lê cabeçalho do arquivo para extrair metadados
     fread(bufferCabecalho, TAM_REG_CABECALHO, 1, fpBin);
     
@@ -267,6 +273,12 @@ void imprimeTabela(char *arquivoEntrada) {
     int proxRRN = *(int *)(bufferCabecalho + offsetProxRRN);
     int nroEstacoes = *(int *)(bufferCabecalho + offsetNroEstacoes);
     int nroParesEstacao = *(int *)(bufferCabecalho + offsetNroParesEstacao);
+
+    // verifica consistencia
+    if (status == '0') {
+        printf("Falha no processamento do arquivo.");
+        return;
+    }
 
     // itera sobre registros existentes
     for (int i = 0; i < proxRRN; i++) {
@@ -310,7 +322,15 @@ int listaTabelaFiltro(char *arquivoEntrada, int n) {
 
     // lê cabeçalho para extrair proxRRN
     fread(bufferCabecalho, TAM_REG_CABECALHO, 1, fpBin);
+    size_t offsetStatus = 0;
+    char status = *(char *)(bufferCabecalho + offsetStatus);
     int proxRRN = *(int *)(bufferCabecalho + sizeof(char) + sizeof(int));
+
+    // verifica consistencia
+    if (status == '0') {
+        printf("Falha no processamento do arquivo.");
+        return 1;
+    }
 
     for (int i = 0; i < n; i++) {
         
