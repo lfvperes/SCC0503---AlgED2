@@ -23,8 +23,6 @@ Luís Filipe Vasconcelos Peres - 10310641
 #define OFFSET_COD_EST_INTEGRA   25
 #define OFFSET_TAM_NOME_ESTACAO  29
 #define OFFSET_NOME_ESTACAO      33
-#define OFFSET_TAM_NOME_LINHA    ??
-#define OFFSET_NOME_LINHA        ??
 
 // struct para o registro de dados
 struct registro {

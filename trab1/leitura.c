@@ -402,12 +402,30 @@ int acessoRRN(char *arquivoEntrada, int RRN) {
     
     FILE *fpBin = fopen(arquivoEntrada, "rb");
 
+    if (fpBin == NULL) {
+        printf("Falha no processamento do arquivo.");
+        return 1;
+    }
+
+    // lê cabeçalho para extrair consistencia
+    fread(bufferCabecalho, TAM_REG_CABECALHO, 1, fpBin);
+    size_t offsetStatus = 0;
+    char status = *(char *)(bufferCabecalho + offsetStatus);
+
+    // verifica consistencia
+    if (status == '0') {
+        printf("Falha no processamento do arquivo.");
+        return 1;
+    }
+
     int offset = TAM_REG_CABECALHO + RRN * TAM_REG_DADOS;
     struct registro dados = leRegistro(fpBin, offset);
 
     if (dados.removido == '1') {
         free(dados.nomeEstacao);
         free(dados.nomeLinha);
+        printf("Registro inexistente.");
+        return 1;
     }
     
     imprimeRegistro(dados);
