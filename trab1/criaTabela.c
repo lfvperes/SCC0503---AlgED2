@@ -322,6 +322,11 @@ int criaTabela(char *estacoesCSV, char *estacoesBin) {
     FILE *fpCSV = fopen(estacoesCSV, "r");
     FILE *fpBin = fopen(estacoesBin, "wb+");
 
+    if (fpCSV == NULL) {
+        printf("Falha no processamento do arquivo.");
+        return 1;
+    }
+
     if (fpBin == NULL) {
         perror("Erro ao abrir arquivo binario para escrita");
         return 1;
@@ -366,7 +371,7 @@ int criaTabela(char *estacoesCSV, char *estacoesBin) {
     fclose(fpCSV);
     fclose(fpBin);
 
-    imprimeBinario(estacoesBin);
+    // imprimeBinario(estacoesBin);
     BinarioNaTela(estacoesBin);
 
     return 0;
