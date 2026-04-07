@@ -364,6 +364,9 @@ int listaTabelaFiltro(char *arquivoEntrada, int n) {
         // libera o array de ponteiros
         free(nomeCampo);
         free(valorCampo);        
+
+        if (i < n-1)
+            printf("\n");
     }
 
     fclose(fpBin);
