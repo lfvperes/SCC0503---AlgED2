@@ -420,10 +420,16 @@ int acessoRRN(char *arquivoEntrada, int RRN) {
     fread(bufferCabecalho, TAM_REG_CABECALHO, 1, fpBin);
     size_t offsetStatus = 0;
     char status = *(char *)(bufferCabecalho + offsetStatus);
+    int proxRRN = *(int *)(bufferCabecalho + sizeof(char) + sizeof(int));
 
     // verifica consistencia
     if (status == '0') {
         printf("Falha no processamento do arquivo.");
+        return 1;
+    }
+
+    if (proxRRN < RRN) {
+        printf("Registro inexistente.");
         return 1;
     }
 
