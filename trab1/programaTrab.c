@@ -27,7 +27,6 @@ int main(){
             criaTabela(argv[0], argv[1]);
             break;
         case 2:
-            // imprimeTabela(argv[0]);
             listaTabelaFiltro(argv[0], 0);
             break;
         case 3:
