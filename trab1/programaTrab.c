@@ -12,25 +12,29 @@ int listaTabelaFiltro(char *arquivoEntrada, int n);
 int acessoRRN(char *arquivoEntrada, int RRN);
 
 int main(){
-    int argc = 0;
-    char argv[3][100];
+    int funcionalidade;
+    char argv[2][100];
 
-    while (argc < 3 && scanf("%99s", argv[argc]) == 1) {
-        argc++;
+    scanf("%d", &funcionalidade);
+
+    int extra = (funcionalidade == 2) ? 1 : 2;
+    for (int i = 0; i < extra; i++) {
+        scanf("%99s", argv[i]);
     }
-    int funcionalidade = atoi(argv[0]);
+
     switch(funcionalidade) {
         case 1:
-            criaTabela(argv[1], argv[2]);
+            criaTabela(argv[0], argv[1]);
             break;
         case 2:
-            imprimeTabela(argv[1]);
+            // imprimeTabela(argv[0]);
+            listaTabelaFiltro(argv[0], 0);
             break;
         case 3:
-            listaTabelaFiltro(argv[1], atoi(argv[2]));
+            listaTabelaFiltro(argv[0], atoi(argv[1]));
             break;
         case 4:
-            acessoRRN(argv[1], atoi(argv[2]));
+            acessoRRN(argv[0], atoi(argv[1]));
             break;
     }
 

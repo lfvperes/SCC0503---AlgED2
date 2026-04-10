@@ -312,7 +312,7 @@ char* formataSeNulo(int valor) {
 
 int listaTabelaFiltro(char *arquivoEntrada, int n) {
     char bufferLinha[MAX_LINHA];    // buffer para a entrada
-    int m, encontrados;
+    int m, encontrados, filtro = 1;
     FILE *fpBin = fopen(arquivoEntrada, "rb");    
     
     if (fpBin == NULL) {
@@ -332,10 +332,19 @@ int listaTabelaFiltro(char *arquivoEntrada, int n) {
         return 1;
     }
 
+    if (n == 0) {
+        filtro  = 0;
+        n = 1;
+    }
+
     for (int i = 0; i < n; i++) {
         
-        // lê m direto do stdin
-        scanf("%d", &m);
+        if (filtro) {
+            // lê m direto do stdin
+            scanf("%d", &m);
+        } else{
+            m = 0;
+        }
 
         // aloca m ponteiros para strings (os nomes)
         char **nomeCampo = malloc(m * sizeof(char *));
