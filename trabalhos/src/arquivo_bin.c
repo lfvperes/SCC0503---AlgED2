@@ -34,6 +34,7 @@ int escreveCabecalho(FILE *fpBin, char status, int proxRRN,
         perror("Erro ao escrever cabecalho no arquivo binario");
         return 1;
     }
+    fseek(fpBin, 0, SEEK_END);
     return 0;
 }
 

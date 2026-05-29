@@ -80,13 +80,13 @@ static int nomeEstacaoExiste(FILE *fpBin, const struct registro *dados, int nroR
             fread(bufferNomeEstacao, bufferTamNomeEstacao, 1, fpBin);
             n = memcmp(bufferNomeEstacao, dados->nomeEstacao, dados->tamNomeEstacao);
             if (n == 0) {
-                fseek(fpBin, TAM_REG_CABECALHO + nroRegistros * TAM_REG_DADOS, SEEK_SET);
+                // fseek(fpBin, TAM_REG_CABECALHO + nroRegistros * TAM_REG_DADOS, SEEK_SET);
                 return 1;
             }
         }
     }
 
-    fseek(fpBin, TAM_REG_CABECALHO + nroRegistros * TAM_REG_DADOS, SEEK_SET);
+    // fseek(fpBin, TAM_REG_CABECALHO + nroRegistros * TAM_REG_DADOS, SEEK_SET);
     return 0;
 }
 
@@ -128,12 +128,12 @@ static int parExiste(FILE *fpBin, struct parEstacao parNovo, int nroRegistros) {
         parDisco.codEstacao2 = codProxEstacaoDisco;
 
         if (paresSaoEquivalentes(parDisco, parNovo)) {
-            fseek(fpBin, TAM_REG_CABECALHO + nroRegistros * TAM_REG_DADOS, SEEK_SET);
+            // fseek(fpBin, TAM_REG_CABECALHO + nroRegistros * TAM_REG_DADOS, SEEK_SET);
             return 1;
         }
     }
 
-    fseek(fpBin, TAM_REG_CABECALHO + nroRegistros * TAM_REG_DADOS, SEEK_SET);
+    // fseek(fpBin, TAM_REG_CABECALHO + nroRegistros * TAM_REG_DADOS, SEEK_SET);
     return 0;
 }
 
@@ -167,6 +167,8 @@ int criaTabela(char *estacoesCSV, char *estacoesBin) {
         linha[strcspn(linha, "\r\n")] = '\0';
         lerRegistroCSV(linha, &dados);
 
+        long posicaoEscrita = ftell(fpBin);  // salva onde vamos escrever
+
         if (!nomeEstacaoExiste(fpBin, &dados, nroRegistros))
             nroEstacoes++;
 
@@ -175,6 +177,7 @@ int criaTabela(char *estacoesCSV, char *estacoesBin) {
         if (dados.codProxEstacao != -1 && !parExiste(fpBin, parNovo, nroRegistros))
             nroParesEstacao++;
 
+        fseek(fpBin, posicaoEscrita, SEEK_SET);  // restaura para a posição correta
         escreveRegistroDados(fpBin, &dados);
         nroRegistros++;
 
