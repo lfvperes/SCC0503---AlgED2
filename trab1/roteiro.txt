@@ -1,0 +1,11 @@
+função 2 foi reduzida na 3 no caso em que m = 0, podendo chamar a mesma função na principal
+isso é controlado por uma flag que indica o filtro
+a função listaTabelaFiltro faz
+le cabeçalho para verificar consistência
+le quantas buscas serao feitas
+le quantos filtros e pra cada um
+le o nome do campo com scanf e o valor, usando a função fornecida para valores entres aspas
+chama a função buscaRegistros
+que passa uma vez para contar os resultados, fazer um malloc e poder então armazenar os resultados
+usa a auxiliar verificaCampo usando o enum mencionado antes para encontrar o offset correto
+inlcusive nos campos de tamanho variável como nome da linha onde se tem que ler o tamanho do campo anterior
