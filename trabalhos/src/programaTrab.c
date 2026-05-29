@@ -3,15 +3,12 @@ Fernando Barbosa Leite - 14570458
 Luís Filipe Vasconcelos Peres - 10310641
 */
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include "escrita.h"
+#include "leitura.h"
 
-int criaTabela(char *estacoesCSV, char *estacoesBin);
-void imprimeTabela(char *arquivoEntrada);
-int listaTabelaFiltro(char *arquivoEntrada, int n);
-int acessoRRN(char *arquivoEntrada, int RRN);
-
-int main(){
+int main() {
     int funcionalidade;
     char argv[2][100];
 
@@ -22,7 +19,7 @@ int main(){
         scanf("%99s", argv[i]);
     }
 
-    switch(funcionalidade) {
+    switch (funcionalidade) {
         case 1:
             criaTabela(argv[0], argv[1]);
             break;

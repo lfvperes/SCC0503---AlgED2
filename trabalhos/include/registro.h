@@ -13,7 +13,7 @@ Luís Filipe Vasconcelos Peres - 10310641
 // constantes
 #define TAM_REG_CABECALHO 17
 #define TAM_REG_DADOS 80
-#define OFFSET_REMOVIDO          0 
+#define OFFSET_REMOVIDO          0
 #define OFFSET_PROXIMO           1
 #define OFFSET_COD_ESTACAO       5
 #define OFFSET_COD_LINHA         9
@@ -40,7 +40,7 @@ struct registro {
     char *nomeLinha;
 };
 
-// struct para o par e estacoes
+// struct para o par de estacoes
 struct parEstacao {
     int codEstacao1;
     int codEstacao2;
@@ -60,6 +60,5 @@ typedef enum {
     CAMPO_TAM_NOME_LINHA,
     CAMPO_NOME_LINHA
 } CampoRegistro;
-
 
 #endif // REGISTRO_CABECALHO
