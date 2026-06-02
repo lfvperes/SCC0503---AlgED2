@@ -62,6 +62,15 @@ struct registro* buscaRegistros(FILE *fpBin, char **nomeCampo, char **valorCampo
         }
     }
 
+    // verifica se codEstacao está entre os filtros (é único, então para ao encontrar)
+    int filtraPorId = 0;
+    for (int j = 0; j < m; j++) {
+        if (campos[j] == CAMPO_COD_ESTACAO) {
+            filtraPorId = 1;
+            break;
+        }
+    }
+
     // passe 1: conta os registros que passam no filtro
     fseek(fpBin, TAM_REG_CABECALHO, SEEK_SET);
     for (int i = 0; i < nroRegistros; i++) {
@@ -88,6 +97,9 @@ struct registro* buscaRegistros(FILE *fpBin, char **nomeCampo, char **valorCampo
 
         if (satisfazTodos)
             (*encontrados)++;
+
+        // se estamos filtrando por ID e já encontramos, podemos parar
+        if (filtraPorId && satisfazTodos) break;
     }
 
     if (*encontrados == 0)
@@ -123,6 +135,9 @@ struct registro* buscaRegistros(FILE *fpBin, char **nomeCampo, char **valorCampo
             free(reg.nomeEstacao);
             free(reg.nomeLinha);
         }
+        
+        // se estamos filtrando por ID e já encontramos, podemos parar
+        if (filtraPorId && satisfazTodos) break;
     }
 
     return resultado;
