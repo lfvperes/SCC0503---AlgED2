@@ -113,7 +113,7 @@ int criaTabela(char *estacoesCSV, char *estacoesBin) {
     struct parEstacao *paresVistos = NULL;
 
     FILE *fpCSV = fopen(estacoesCSV, "r");
-    FILE *fpBin = fopen(estacoesBin, "wb+");
+    FILE *fpBin = fopen(estacoesBin, "wb");
 
     if (fpCSV == NULL) {
         printf("Falha no processamento do arquivo.");
