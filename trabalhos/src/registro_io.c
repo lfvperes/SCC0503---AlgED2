@@ -47,6 +47,38 @@ struct registro leRegistro(FILE *fpBin, int offset) {
     return reg;
 }
 
+// lê o registro a partir da posição corrente, sem fseek
+struct registro leRegistroSeq(FILE *fpBin) {
+    struct registro reg;
+
+    fread(&reg.removido, sizeof(char), 1, fpBin);
+    fread(&reg.proximo, sizeof(int), 1, fpBin);
+    fread(&reg.codEstacao, sizeof(int), 1, fpBin);
+    fread(&reg.codLinha, sizeof(int), 1, fpBin);
+    fread(&reg.codProxEstacao, sizeof(int), 1, fpBin);
+    fread(&reg.distProxEstacao, sizeof(int), 1, fpBin);
+    fread(&reg.codLinhaIntegra, sizeof(int), 1, fpBin);
+    fread(&reg.codEstIntegra, sizeof(int), 1, fpBin);
+
+    fread(&reg.tamNomeEstacao, sizeof(int), 1, fpBin);
+    reg.nomeEstacao = malloc(reg.tamNomeEstacao + 1);
+    fread(reg.nomeEstacao, reg.tamNomeEstacao, 1, fpBin);
+    reg.nomeEstacao[reg.tamNomeEstacao] = '\0';
+
+    fread(&reg.tamNomeLinha, sizeof(int), 1, fpBin);
+    reg.nomeLinha = malloc(reg.tamNomeLinha + 1);
+    fread(reg.nomeLinha, reg.tamNomeLinha, 1, fpBin);
+    reg.nomeLinha[reg.tamNomeLinha] = '\0';
+
+    // descarta padding
+    int restante = TAM_REG_DADOS - sizeof(char) - 9 * sizeof(int)
+                   - reg.tamNomeEstacao - reg.tamNomeLinha;
+    char lixo[restante];
+    fread(lixo, sizeof(char), restante, fpBin);
+
+    return reg;
+}
+
 // imprime os campos de um registro formatados em uma linha
 void imprimeRegistro(struct registro reg) {
     char buffSaida[TAM_REG_DADOS];
