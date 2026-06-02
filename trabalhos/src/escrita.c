@@ -65,28 +65,13 @@ static void escreveRegistroDados(FILE *fpBin, const struct registro *dados) {
         perror("Erro ao escrever registro de dados no arquivo binario");
 }
 
-// verifica se um registro com o mesmo nomeEstacao já foi escrito no arquivo.
-// retorna 1 se encontrado, 0 caso contrário.
-static int nomeEstacaoExiste(FILE *fpBin, const struct registro *dados, int nroRegistros) {
-    int bufferTamNomeEstacao, n;
-
-    for (int i = 0; i < nroRegistros; i++) {
-        int offset = TAM_REG_CABECALHO + i * TAM_REG_DADOS + OFFSET_TAM_NOME_ESTACAO;
-        fseek(fpBin, offset, SEEK_SET);
-        fread(&bufferTamNomeEstacao, sizeof(int), 1, fpBin);
-
-        if (bufferTamNomeEstacao == dados->tamNomeEstacao) {
-            char bufferNomeEstacao[bufferTamNomeEstacao];
-            fread(bufferNomeEstacao, bufferTamNomeEstacao, 1, fpBin);
-            n = memcmp(bufferNomeEstacao, dados->nomeEstacao, dados->tamNomeEstacao);
-            if (n == 0) {
-                // fseek(fpBin, TAM_REG_CABECALHO + nroRegistros * TAM_REG_DADOS, SEEK_SET);
-                return 1;
-            }
-        }
+static int nomeEstacaoExiste(char **nomesVistos, int nroNomes, const struct registro *dados) {
+    for (int i = 0; i < nroNomes; i++) {
+        // compara apenas tamNomeEstacao bytes pois nomeEstacao não tem null terminator
+        if (strncmp(nomesVistos[i], dados->nomeEstacao, dados->tamNomeEstacao) == 0
+                && (int)strlen(nomesVistos[i]) == dados->tamNomeEstacao)
+            return 1;
     }
-
-    // fseek(fpBin, TAM_REG_CABECALHO + nroRegistros * TAM_REG_DADOS, SEEK_SET);
     return 0;
 }
 
@@ -107,33 +92,13 @@ static int paresSaoEquivalentes(struct parEstacao parDisco, struct parEstacao pa
             parDisco.codEstacao2 == parNovo.codEstacao2);
 }
 
-// verifica se um par de estações já existe no arquivo.
+// verifica se par já existe no array em memória.
 // retorna 1 se encontrado, 0 caso contrário.
-static int parExiste(FILE *fpBin, struct parEstacao parNovo, int nroRegistros) {
-    int codEstacaoDisco, codProxEstacaoDisco;
-    int offsetCodEstacao    = sizeof(char) + sizeof(int);
-    int offsetCodProxEstacao = offsetCodEstacao + sizeof(int) + sizeof(int);
-    struct parEstacao parDisco;
-
-    for (int i = 0; i < nroRegistros; i++) {
-        int base = TAM_REG_CABECALHO + i * TAM_REG_DADOS;
-
-        fseek(fpBin, base + offsetCodEstacao, SEEK_SET);
-        fread(&codEstacaoDisco, sizeof(int), 1, fpBin);
-
-        fseek(fpBin, base + offsetCodProxEstacao, SEEK_SET);
-        fread(&codProxEstacaoDisco, sizeof(int), 1, fpBin);
-
-        parDisco.codEstacao1 = codEstacaoDisco;
-        parDisco.codEstacao2 = codProxEstacaoDisco;
-
-        if (paresSaoEquivalentes(parDisco, parNovo)) {
-            // fseek(fpBin, TAM_REG_CABECALHO + nroRegistros * TAM_REG_DADOS, SEEK_SET);
+static int parExiste(struct parEstacao *paresVistos, int nroPares, struct parEstacao parNovo) {
+    for (int i = 0; i < nroPares; i++) {
+        if (paresSaoEquivalentes(paresVistos[i], parNovo))
             return 1;
-        }
     }
-
-    // fseek(fpBin, TAM_REG_CABECALHO + nroRegistros * TAM_REG_DADOS, SEEK_SET);
     return 0;
 }
 
@@ -144,6 +109,8 @@ int criaTabela(char *estacoesCSV, char *estacoesBin) {
     struct registro dados;
     struct parEstacao parNovo;
     int nroRegistros = 0, nroEstacoes = 0, nroParesEstacao = 0;
+    char **nomesVistos = NULL;
+    struct parEstacao *paresVistos = NULL;
 
     FILE *fpCSV = fopen(estacoesCSV, "r");
     FILE *fpBin = fopen(estacoesBin, "wb+");
@@ -167,29 +134,41 @@ int criaTabela(char *estacoesCSV, char *estacoesBin) {
         linha[strcspn(linha, "\r\n")] = '\0';
         lerRegistroCSV(linha, &dados);
 
-        long posicaoEscrita = ftell(fpBin);  // salva onde vamos escrever
-
-        if (!nomeEstacaoExiste(fpBin, &dados, nroRegistros))
+        // se o nome da estação ainda não foi visto, adiciona ao array e incrementa o contador
+        if (!nomeEstacaoExiste(nomesVistos, nroEstacoes, &dados)) {
+            nomesVistos = realloc(nomesVistos, (nroEstacoes + 1) * sizeof(char *));
+            nomesVistos[nroEstacoes] = malloc(dados.tamNomeEstacao + 1);
+            memcpy(nomesVistos[nroEstacoes], dados.nomeEstacao, dados.tamNomeEstacao);
+            nomesVistos[nroEstacoes][dados.tamNomeEstacao] = '\0';
             nroEstacoes++;
+        }
 
         parNovo.codEstacao1 = dados.codEstacao;
         parNovo.codEstacao2 = dados.codProxEstacao;
-        if (dados.codProxEstacao != -1 && !parExiste(fpBin, parNovo, nroRegistros))
+        if (dados.codProxEstacao != -1 && !parExiste(paresVistos, nroParesEstacao, parNovo)) {
+            paresVistos = realloc(paresVistos, (nroParesEstacao + 1) * sizeof(struct parEstacao));
+            paresVistos[nroParesEstacao] = parNovo;
             nroParesEstacao++;
+        }
 
-        fseek(fpBin, posicaoEscrita, SEEK_SET);  // restaura para a posição correta
         escreveRegistroDados(fpBin, &dados);
         nroRegistros++;
 
-        // atualiza o cabeçalho após cada escrita
-        escreveCabecalho(fpBin, '0', nroRegistros, nroEstacoes, nroParesEstacao);
 
         free(dados.nomeEstacao);
         free(dados.nomeLinha);
     }
 
+
+    printf("DEBUG: nroRegistros=%d nroEstacoes=%d nroParesEstacao=%d\n",
+        nroRegistros, nroEstacoes, nroParesEstacao);
     // marca o arquivo como consistente ao final da escrita
     escreveCabecalho(fpBin, '1', nroRegistros, nroEstacoes, nroParesEstacao);
+
+    for (int i = 0; i < nroEstacoes; i++)
+        free(nomesVistos[i]);
+    free(nomesVistos);
+    free(paresVistos);
 
     fclose(fpCSV);
     fclose(fpBin);

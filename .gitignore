@@ -3,8 +3,10 @@
 *.bin
 *.zip
 Casos de Teste - Trabalho Pratico  1/
+Casos de Teste - Melhorias no Trabalho Introdutorio/
 *.csv
 *.csv#
+*.in
 *.out
 *.png
 programaTrab
