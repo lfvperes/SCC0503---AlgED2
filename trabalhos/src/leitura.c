@@ -104,21 +104,12 @@ int listaTabelaFiltro(char *arquivoEntrada, int n) {
             strcpy(valorCampo[j], bufferLinha);
         }
 
-        struct registro *resultado = buscaRegistros(fpBin, nomeCampo, valorCampo,
-                                                    m, proxRRN, &encontrados);
+        encontrados = buscaRegistros(fpBin, nomeCampo, valorCampo, m, proxRRN);
 
-        if (resultado == NULL && encontrados == 0) {
+        if (encontrados == 0)
             printf("Registro inexistente.\n");
-        } else if (resultado == NULL) {
+        else if (encontrados == -1)
             printf("Falha no processamento do arquivo.\n");
-        } else {
-            for (int j = 0; j < encontrados; j++) {
-                imprimeRegistro(resultado[j]);
-                free(resultado[j].nomeEstacao);
-                free(resultado[j].nomeLinha);
-            }
-            free(resultado);
-        }
 
         for (int j = 0; j < m; j++) {
             free(nomeCampo[j]);

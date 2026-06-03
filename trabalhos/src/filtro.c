@@ -45,11 +45,12 @@ static int verificaCampoMem(const struct registro *reg, CampoRegistro campo, cha
     }
 }
 
-// percorre os registros sequencialmente, usando fseek apenas para pular removidos.
-// dois passes: primeiro conta, depois aloca e preenche.
-struct registro* buscaRegistros(FILE *fpBin, char **nomeCampo, char **valorCampo,
-                                int m, int nroRegistros, int *encontrados) {
-    *encontrados = 0;
+// percorre os registros sequencialmente, imprimindo cada um que satisfaz o filtro.
+// usa fseek apenas para pular registros removidos.
+// retorna o número de registros encontrados, ou -1 em caso de erro.
+int buscaRegistros(FILE *fpBin, char **nomeCampo, char **valorCampo,
+                   int m, int nroRegistros) {
+    int encontrados = 0;
 
     // valida os campos antes de varrer o arquivo
     CampoRegistro campos[m];
@@ -57,8 +58,7 @@ struct registro* buscaRegistros(FILE *fpBin, char **nomeCampo, char **valorCampo
         campos[j] = nomeCampoParaEnum(nomeCampo[j]);
         if ((int)campos[j] == -1) {
             fprintf(stderr, "Campo desconhecido: %s\n", nomeCampo[j]);
-            *encontrados = 1; // sinaliza erro para o chamador
-            return NULL;
+            return -1;
         }
     }
 
@@ -71,7 +71,6 @@ struct registro* buscaRegistros(FILE *fpBin, char **nomeCampo, char **valorCampo
         }
     }
 
-    // passe 1: conta os registros que passam no filtro
     fseek(fpBin, TAM_REG_CABECALHO, SEEK_SET);
     for (int i = 0; i < nroRegistros; i++) {
         long posInicio = ftell(fpBin);
@@ -92,53 +91,17 @@ struct registro* buscaRegistros(FILE *fpBin, char **nomeCampo, char **valorCampo
             }
         }
 
+        if (satisfazTodos) {
+            imprimeRegistro(reg);
+            encontrados++;
+        }
+
+        // libera memória do registro atual antes de seguir
         free(reg.nomeEstacao);
         free(reg.nomeLinha);
 
-        if (satisfazTodos)
-            (*encontrados)++;
-
-        // se estamos filtrando por ID e já encontramos, podemos parar
         if (filtraPorId && satisfazTodos) break;
     }
 
-    if (*encontrados == 0)
-        return NULL;
-
-    // passe 2: aloca e preenche o array com os registros encontrados
-    struct registro *resultado = malloc(*encontrados * sizeof(struct registro));
-    int idx = 0;
-
-    fseek(fpBin, TAM_REG_CABECALHO, SEEK_SET);
-    for (int i = 0; i < nroRegistros; i++) {
-        long posInicio = ftell(fpBin);
-        struct registro reg = leRegistroSeq(fpBin);
-
-        if (reg.removido == '1') {
-            free(reg.nomeEstacao);
-            free(reg.nomeLinha);
-            fseek(fpBin, posInicio + TAM_REG_DADOS, SEEK_SET);
-            continue;
-        }
-
-        int satisfazTodos = 1;
-        for (int j = 0; j < m; j++) {
-            if (!verificaCampoMem(&reg, campos[j], valorCampo[j])) {
-                satisfazTodos = 0;
-                break;
-            }
-        }
-
-        if (satisfazTodos)
-            resultado[idx++] = reg;
-        else {
-            free(reg.nomeEstacao);
-            free(reg.nomeLinha);
-        }
-        
-        // se estamos filtrando por ID e já encontramos, podemos parar
-        if (filtraPorId && satisfazTodos) break;
-    }
-
-    return resultado;
+    return encontrados;
 }

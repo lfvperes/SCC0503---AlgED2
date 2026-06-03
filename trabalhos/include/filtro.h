@@ -19,8 +19,6 @@ CampoRegistro nomeCampoParaEnum(char *nome);
 // *encontrados é preenchido com a quantidade de registros encontrados
 // retorna NULL se nenhum registro for encontrado ou se algum campo
 // for desconhecido (neste último caso *encontrados != 0)
-struct registro* buscaRegistros(FILE *fpBin, char **nomeCampo,
-                                char **valorCampo, int m,
-                                int nroRegistros, int *encontrados);
+int buscaRegistros(FILE *fpBin, char **nomeCampo, char **valorCampo, int m, int nroRegistros);
 
 #endif // FILTRO_H
