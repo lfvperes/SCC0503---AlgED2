@@ -159,9 +159,6 @@ int criaTabela(char *estacoesCSV, char *estacoesBin) {
         free(dados.nomeLinha);
     }
 
-
-    printf("DEBUG: nroRegistros=%d nroEstacoes=%d nroParesEstacao=%d\n",
-        nroRegistros, nroEstacoes, nroParesEstacao);
     // marca o arquivo como consistente ao final da escrita
     escreveCabecalho(fpBin, '1', nroRegistros, nroEstacoes, nroParesEstacao);
 
