@@ -13,16 +13,6 @@ Luís Filipe Vasconcelos Peres - 10310641
 // constantes
 #define TAM_REG_CABECALHO 17
 #define TAM_REG_DADOS 80
-#define OFFSET_REMOVIDO          0
-#define OFFSET_PROXIMO           1
-#define OFFSET_COD_ESTACAO       5
-#define OFFSET_COD_LINHA         9
-#define OFFSET_COD_PROX_ESTACAO  13
-#define OFFSET_DIST_PROX_ESTACAO 17
-#define OFFSET_COD_LINHA_INTEGRA 21
-#define OFFSET_COD_EST_INTEGRA   25
-#define OFFSET_TAM_NOME_ESTACAO  29
-#define OFFSET_NOME_ESTACAO      33
 
 // struct para o registro de dados
 struct registro {
