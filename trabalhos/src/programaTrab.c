@@ -7,6 +7,7 @@ Luís Filipe Vasconcelos Peres - 10310641
 #include <stdlib.h>
 #include "escrita.h"
 #include "leitura.h"
+#include "criaIndice.h"
 
 int main() {
     int funcionalidade;
@@ -31,6 +32,9 @@ int main() {
             break;
         case 4:
             acessoRRN(argv[0], atoi(argv[1]));
+            break;
+        case 5:
+            criaIndice(argv[0], argv[1]);
             break;
     }
 
