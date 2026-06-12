@@ -48,8 +48,7 @@ static int verificaCampoMem(const struct registro *reg, CampoRegistro campo, cha
 // percorre os registros sequencialmente, imprimindo cada um que satisfaz o filtro.
 // usa fseek apenas para pular registros removidos.
 // retorna o número de registros encontrados, ou -1 em caso de erro.
-int buscaRegistros(FILE *fpBin, char **nomeCampo, char **valorCampo,
-                   int m, int nroRegistros) {
+int buscaRegistros(FILE *fpBin, char **nomeCampo, char **valorCampo, int m, int nroRegistros, ModoBusca modo, int **rrns) {
     int encontrados = 0;
 
     // valida os campos antes de varrer o arquivo
@@ -92,7 +91,13 @@ int buscaRegistros(FILE *fpBin, char **nomeCampo, char **valorCampo,
         }
 
         if (satisfazTodos) {
-            imprimeRegistro(reg);
+            if (modo == MODO_IMPRIMIR) {
+                imprimeRegistro(reg);
+            } else {
+                // cresce o array de RRNs dinamicamente
+                *rrns = realloc(*rrns, (encontrados + 1) * sizeof(int));
+                (*rrns)[encontrados] = i;
+            }
             encontrados++;
         }
 

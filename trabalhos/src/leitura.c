@@ -104,7 +104,7 @@ int listaTabelaFiltro(char *arquivoEntrada, int n) {
             strcpy(valorCampo[j], bufferLinha);
         }
 
-        encontrados = buscaRegistros(fpBin, nomeCampo, valorCampo, m, proxRRN);
+        encontrados = buscaRegistros(fpBin, nomeCampo, valorCampo, m, proxRRN, MODO_IMPRIMIR, NULL);
 
         if (encontrados == 0)
             printf("Registro inexistente.\n");

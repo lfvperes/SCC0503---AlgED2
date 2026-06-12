@@ -154,7 +154,7 @@ int buscaIndice(char *arquivoEntrada, char *arquivoIndice, int n) {
             }
         } else {
             // busca sequencial para os demais campos
-            encontrados = buscaRegistros(fpEntrada, nomeCampo, valorCampo, m, proxRRN);
+            encontrados = buscaRegistros(fpEntrada, nomeCampo, valorCampo, m, proxRRN, MODO_IMPRIMIR, NULL);
         }
 
         if (encontrados == 0)

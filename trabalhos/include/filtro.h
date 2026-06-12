@@ -13,12 +13,14 @@ Luís Filipe Vasconcelos Peres - 10310641
 // retorna -1 se o campo for desconhecido
 CampoRegistro nomeCampoParaEnum(char *nome);
 
+typedef enum { MODO_IMPRIMIR, MODO_COLETAR_RRN } ModoBusca;
 
-// percorre os registros do arquivo e retorna um array alocado com os
-// que satisfazem todos os m filtros (lógica AND),
-// *encontrados é preenchido com a quantidade de registros encontrados
-// retorna NULL se nenhum registro for encontrado ou se algum campo
-// for desconhecido (neste último caso *encontrados != 0)
-int buscaRegistros(FILE *fpBin, char **nomeCampo, char **valorCampo, int m, int nroRegistros);
+// percorre os registros do arquivo aplicando m filtros (lógica AND).
+// modo MODO_IMPRIMIR: imprime cada registro encontrado.
+// modo MODO_COLETAR_RRN: preenche *rrns (deve ser inicializado como NULL)
+//   com array alocado dos RRNs encontrados.
+// retorna o número de registros encontrados, ou -1 em caso de erro.
+int buscaRegistros(FILE *fpBin, char **nomeCampo, char **valorCampo,
+                   int m, int nroRegistros, ModoBusca modo, int **rrns);
 
 #endif // FILTRO_H
