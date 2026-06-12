@@ -125,7 +125,7 @@ int criaTabela(char *estacoesCSV, char *estacoesBin) {
     }
 
     // escreve cabeçalho inicial com status '0' (inconsistente) e contadores zerados
-    escreveCabecalho(fpBin, '0', 0, 0, 0);
+    escreveCabecalho(fpBin, '0', -1, 0, 0, 0);
 
     char linha[TAM_REG_DADOS];
     descartaCabecalhoCSV(fpCSV);
@@ -160,7 +160,7 @@ int criaTabela(char *estacoesCSV, char *estacoesBin) {
     }
 
     // marca o arquivo como consistente ao final da escrita
-    escreveCabecalho(fpBin, '1', nroRegistros, nroEstacoes, nroParesEstacao);
+    escreveCabecalho(fpBin, '1', -1, nroRegistros, nroEstacoes, nroParesEstacao);
 
     for (int i = 0; i < nroEstacoes; i++)
         free(nomesVistos[i]);

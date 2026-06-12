@@ -12,7 +12,7 @@ Luís Filipe Vasconcelos Peres - 10310641
 /* Escreve (ou sobrescreve) o registro de cabeçalho no início do arquivo.
    Sempre posiciona no início antes de escrever.
    Retorna 0 em sucesso, 1 em erro. */
-int escreveCabecalho(FILE *fpBin, char status, int proxRRN,
+int escreveCabecalho(FILE *fpBin, char status, int topo, int proxRRN,
                      int nroEstacoes, int nroParesEstacao);
 
 /* Lê o registro de cabeçalho e preenche os ponteiros fornecidos.

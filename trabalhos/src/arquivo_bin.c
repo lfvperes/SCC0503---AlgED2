@@ -18,13 +18,13 @@ Luís Filipe Vasconcelos Peres - 10310641
 // inicializa ou atualiza o registro de cabeçalho no arquivo binário.
 // sempre posiciona no início antes de escrever.
 // retorna 0 em sucesso, 1 em erro.
-int escreveCabecalho(FILE *fpBin, char status, int proxRRN,
-                     int nroEstacoes, int nroParesEstacao) {
+int escreveCabecalho(FILE *fpBin, char status, int topo, int proxRRN,
+    int nroEstacoes, int nroParesEstacao) {
     char buf[TAM_REG_CABECALHO];
     memset(buf, 0, TAM_REG_CABECALHO);
 
     *(char *)(buf + OFF_STATUS)       = status;
-    *(int  *)(buf + OFF_TOPO)         = -1;          // topo da lista de removidos
+    *(int  *)(buf + OFF_TOPO)         = topo;         // topo da lista de removidos
     *(int  *)(buf + OFF_PROX_RRN)     = proxRRN;
     *(int  *)(buf + OFF_NRO_ESTACOES) = nroEstacoes;
     *(int  *)(buf + OFF_NRO_PARES)    = nroParesEstacao;
