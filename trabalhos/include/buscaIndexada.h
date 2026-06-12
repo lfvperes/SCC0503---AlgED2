@@ -13,5 +13,7 @@ Luís Filipe Vasconcelos Peres - 10310641
 // executa n buscas lidas da entrada padrão.
 // retorna 0 em sucesso, 1 em erro.
 int buscaIndice(char *arquivoEntrada, char *arquivoIndice, int n);
+ParIndice *carregaIndice(char *arquivoIndice, int *total);
+int buscaBinariaIndice(ParIndice *pares, int total, int chave);
 
 #endif // BUSCA_INDEXADA_H

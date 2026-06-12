@@ -14,7 +14,7 @@ Luís Filipe Vasconcelos Peres - 10310641
 
 // busca binária por codEstacao no array de pares (ordenado por codEstacao).
 // retorna o RRN correspondente, ou -1 se não encontrado.
-static int buscaBinariaIndice(ParIndice *pares, int total, int chave) {
+int buscaBinariaIndice(ParIndice *pares, int total, int chave) {
     int inicio = 0, fim = total - 1;
 
     while (inicio <= fim) {
@@ -31,6 +31,43 @@ static int buscaBinariaIndice(ParIndice *pares, int total, int chave) {
     return -1;
 }
 
+// carrega os pares do arquivo de índice em memória.
+// retorna o array alocado e preenche *total com a quantidade de pares.
+// retorna NULL em caso de erro.
+ParIndice *carregaIndice(char *arquivoIndice, int *total) {
+    FILE *fpIndice = fopen(arquivoIndice, "rb");
+    if (fpIndice == NULL)
+        return NULL;
+
+    // valida o status do índice
+    char statusIndice;
+    if (fread(&statusIndice, sizeof(char), 1, fpIndice) != 1 || statusIndice != '1') {
+        fclose(fpIndice);
+        return NULL;
+    }
+
+    // calcula a quantidade de pares a partir do tamanho do arquivo
+    fseek(fpIndice, 0, SEEK_END);
+    long tamArquivo = ftell(fpIndice);
+    *total = (int)((tamArquivo - sizeof(char)) / (2 * sizeof(int)));
+
+    // aloca e carrega os pares em memória
+    ParIndice *pares = malloc(*total * sizeof(ParIndice));
+    if (pares == NULL) {
+        fclose(fpIndice);
+        return NULL;
+    }
+
+    fseek(fpIndice, sizeof(char), SEEK_SET);
+    for (int i = 0; i < *total; i++) {
+        fread(&pares[i].codEstacao, sizeof(int), 1, fpIndice);
+        fread(&pares[i].rrn,        sizeof(int), 1, fpIndice);
+    }
+
+    fclose(fpIndice);
+    return pares;
+}
+
 int buscaIndice(char *arquivoEntrada, char *arquivoIndice, int n) {
     // abre o arquivo de índice
     FILE *fpIndice = fopen(arquivoIndice, "rb");
@@ -39,31 +76,12 @@ int buscaIndice(char *arquivoEntrada, char *arquivoIndice, int n) {
         return 1;
     }
 
-    // lê o status do índice
-    char statusIndice;
-    if (fread(&statusIndice, sizeof(char), 1, fpIndice) != 1 || statusIndice != '1') {
-        printf("Falha no processamento do arquivo.\n");
-        fclose(fpIndice);
-        return 1;
-    }
-
-    // calcula a quantidade de pares (codEstacao, RRN) a partir do tamanho do arquivo
-    fseek(fpIndice, 0, SEEK_END);
-    long tamArquivo = ftell(fpIndice);
-    int total = (int)((tamArquivo - sizeof(char)) / (2 * sizeof(int)));
-
-    // carrega os pares do índice em memória
-    ParIndice *pares = malloc(total * sizeof(ParIndice));
+    // carrega o índice em memória
+    int total;
+    ParIndice *pares = carregaIndice(arquivoIndice, &total);
     if (pares == NULL) {
         printf("Falha no processamento do arquivo.\n");
-        fclose(fpIndice);
         return 1;
-    }
-
-    fseek(fpIndice, sizeof(char), SEEK_SET);
-    for (int i = 0; i < total; i++) {
-        fread(&pares[i].codEstacao, sizeof(int), 1, fpIndice);
-        fread(&pares[i].rrn,        sizeof(int), 1, fpIndice);
     }
     fclose(fpIndice);
 
