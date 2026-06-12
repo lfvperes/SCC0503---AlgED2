@@ -8,16 +8,23 @@ Luís Filipe Vasconcelos Peres - 10310641
 #include "escrita.h"
 #include "leitura.h"
 #include "criaIndice.h"
+#include "buscaIndexada.h"
 
 int main() {
     int funcionalidade;
-    char argv[2][100];
+    char argv[3][100];
 
     scanf("%d", &funcionalidade);
 
     int extra = (funcionalidade == 2) ? 1 : 2;
     for (int i = 0; i < extra; i++) {
         scanf("%99s", argv[i]);
+    }
+
+    // funcionalidade 6 requer um terceiro argumento inteiro (n buscas)
+    int n = 0;
+    if (funcionalidade == 6) {
+        scanf("%d", &n);
     }
 
     switch (funcionalidade) {
@@ -35,6 +42,9 @@ int main() {
             break;
         case 5:
             criaIndice(argv[0], argv[1]);
+            break;
+        case 6:
+            buscaIndice(argv[0], argv[1], n);
             break;
     }
 

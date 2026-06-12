@@ -51,7 +51,27 @@ struct registro leRegistro(FILE *fpBin, int offset) {
 struct registro leRegistroSeq(FILE *fpBin) {
     struct registro reg;
 
-    fread(&reg.removido, sizeof(char), 1, fpBin);
+    // tenta ler o primeiro campo; se falhar (EOF), interrompe a leitura
+    // imediatamente e retorna um registro "vazio", evitando usar valores
+    // de lixo de tamNomeEstacao/tamNomeLinha (que poderiam gerar mallocs
+    // e VLAs com tamanhos inválidos)
+    if (fread(&reg.removido, sizeof(char), 1, fpBin) != 1) {
+        reg.proximo = -1;
+        reg.codEstacao = -1;
+        reg.codLinha = -1;
+        reg.codProxEstacao = -1;
+        reg.distProxEstacao = -1;
+        reg.codLinhaIntegra = -1;
+        reg.codEstIntegra = -1;
+        reg.tamNomeEstacao = 0;
+        reg.nomeEstacao = malloc(1);
+        reg.nomeEstacao[0] = '\0';
+        reg.tamNomeLinha = 0;
+        reg.nomeLinha = malloc(1);
+        reg.nomeLinha[0] = '\0';
+        return reg;
+    }
+
     fread(&reg.proximo, sizeof(int), 1, fpBin);
     fread(&reg.codEstacao, sizeof(int), 1, fpBin);
     fread(&reg.codLinha, sizeof(int), 1, fpBin);
