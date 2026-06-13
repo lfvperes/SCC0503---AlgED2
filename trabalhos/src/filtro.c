@@ -71,16 +71,24 @@ int buscaRegistros(FILE *fpBin, char **nomeCampo, char **valorCampo, int m, int 
     }
 
     fseek(fpBin, TAM_REG_CABECALHO, SEEK_SET);
-    for (int i = 0; i < nroRegistros; i++) {
+    int rrn = 0;  // RRN real, conta todos os registros incluindo removidos
+    for (int i = 0; i < nroRegistros; i++, rrn++) {
         long posInicio = ftell(fpBin);
-        struct registro reg = leRegistroSeq(fpBin);
 
-        if (reg.removido == '1') {
-            free(reg.nomeEstacao);
-            free(reg.nomeLinha);
+        // lê só o marcador de remoção (1 byte) sem ler o resto
+        char marcador;
+        fread(&marcador, sizeof(char), 1, fpBin);
+
+        if (marcador == '1') {
+            // pula direto para o próximo registro sem ler os outros campos
             fseek(fpBin, posInicio + TAM_REG_DADOS, SEEK_SET);
             continue;
         }
+
+        // só chama leRegistroSeq se não for removido
+        // mas o cursor já avançou 1 byte — precisa voltar ao início do registro
+        fseek(fpBin, posInicio, SEEK_SET);
+        struct registro reg = leRegistroSeq(fpBin);
 
         int satisfazTodos = 1;
         for (int j = 0; j < m; j++) {
@@ -94,14 +102,12 @@ int buscaRegistros(FILE *fpBin, char **nomeCampo, char **valorCampo, int m, int 
             if (modo == MODO_IMPRIMIR) {
                 imprimeRegistro(reg);
             } else {
-                // cresce o array de RRNs dinamicamente
                 *rrns = realloc(*rrns, (encontrados + 1) * sizeof(int));
-                (*rrns)[encontrados] = i;
+                (*rrns)[encontrados] = rrn;  // usa o RRN real
             }
             encontrados++;
         }
 
-        // libera memória do registro atual antes de seguir
         free(reg.nomeEstacao);
         free(reg.nomeLinha);
 

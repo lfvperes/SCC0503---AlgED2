@@ -9,6 +9,8 @@ Luís Filipe Vasconcelos Peres - 10310641
 #include "leitura.h"
 #include "criaIndice.h"
 #include "buscaIndexada.h"
+#include "remocao.h"
+#include "fornecidas.h"
 
 int main() {
     int funcionalidade;
@@ -16,14 +18,14 @@ int main() {
 
     scanf("%d", &funcionalidade);
 
-    int extra = (funcionalidade == 2) ? 1 : 2;
+    int extra = (funcionalidade == 2 || funcionalidade == 0) ? 1 : 2;
     for (int i = 0; i < extra; i++) {
         scanf("%99s", argv[i]);
     }
 
-    // funcionalidade 6 requer um terceiro argumento inteiro (n buscas)
+    // funcionalidades 6 e 7 requerem um terceiro argumento inteiro (n buscas)
     int n = 0;
-    if (funcionalidade == 6) {
+    if (funcionalidade == 6 || funcionalidade == 7) {
         scanf("%d", &n);
     }
 
@@ -45,6 +47,16 @@ int main() {
             break;
         case 6:
             buscaIndice(argv[0], argv[1], n);
+            break;
+        case 7:
+            removeRegistros(argv[0], argv[1], n);
+            break;
+        case 0:
+            BinarioNaTela(argv[0]);
+            break;
+        case 10:
+            BinarioNaTela(argv[0]);
+            BinarioNaTela(argv[1]);
             break;
     }
 

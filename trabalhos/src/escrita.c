@@ -14,7 +14,7 @@ Luís Filipe Vasconcelos Peres - 10310641
 
 // serializa um registro de dados em um buffer de tamanho fixo (TAM_REG_DADOS)
 // e escreve no arquivo binário. bytes restantes são preenchidos com $
-static void escreveRegistroDados(FILE *fpBin, const struct registro *dados) {
+void escreveRegistroDados(FILE *fpBin, const struct registro *dados) {
     char bufferDados[TAM_REG_DADOS];
     memset(bufferDados, 0, TAM_REG_DADOS);
 
@@ -65,7 +65,7 @@ static void escreveRegistroDados(FILE *fpBin, const struct registro *dados) {
         perror("Erro ao escrever registro de dados no arquivo binario");
 }
 
-static int nomeEstacaoExiste(char **nomesVistos, int nroNomes, const struct registro *dados) {
+int nomeEstacaoExiste(char **nomesVistos, int nroNomes, const struct registro *dados) {
     for (int i = 0; i < nroNomes; i++) {
         // compara apenas tamNomeEstacao bytes pois nomeEstacao não tem null terminator
         if (strncmp(nomesVistos[i], dados->nomeEstacao, dados->tamNomeEstacao) == 0
@@ -76,7 +76,7 @@ static int nomeEstacaoExiste(char **nomesVistos, int nroNomes, const struct regi
 }
 
 // ordena par para normalização
-static void normalizaPar(struct parEstacao *par) {
+void normalizaPar(struct parEstacao *par) {
     if (par->codEstacao1 > par->codEstacao2) {
         int aux = par->codEstacao1;
         par->codEstacao1 = par->codEstacao2;
@@ -85,7 +85,7 @@ static void normalizaPar(struct parEstacao *par) {
 }
 
 // retorna 1 se os pares são equivalentes após normalizar
-static int paresSaoEquivalentes(struct parEstacao parDisco, struct parEstacao parNovo) {
+int paresSaoEquivalentes(struct parEstacao parDisco, struct parEstacao parNovo) {
     normalizaPar(&parDisco);
     normalizaPar(&parNovo);
     return (parDisco.codEstacao1 == parNovo.codEstacao1 &&
@@ -94,7 +94,7 @@ static int paresSaoEquivalentes(struct parEstacao parDisco, struct parEstacao pa
 
 // verifica se par já existe no array em memória.
 // retorna 1 se encontrado, 0 caso contrário.
-static int parExiste(struct parEstacao *paresVistos, int nroPares, struct parEstacao parNovo) {
+int parExiste(struct parEstacao *paresVistos, int nroPares, struct parEstacao parNovo) {
     for (int i = 0; i < nroPares; i++) {
         if (paresSaoEquivalentes(paresVistos[i], parNovo))
             return 1;
