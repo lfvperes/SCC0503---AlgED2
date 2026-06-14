@@ -52,7 +52,7 @@ static int salvaPares(char *arquivoIndice, ParIndice *pares, int total) {
     return 0;
 }
 
-int insertRegistro(char *arquivoEntrada, char *arquivoIndice) {
+int insertRegistro(char *arquivoEntrada, char *arquivoIndice, int n) {
     // --- abre e valida o arquivo de índice ---
     FILE *fpIndice = fopen(arquivoIndice, "rb");
     if (fpIndice == NULL) {
@@ -102,94 +102,117 @@ int insertRegistro(char *arquivoEntrada, char *arquivoIndice) {
     struct registro novo;
     char bufStr[TAM_REG_DADOS];
 
-    scanf("%d", &novo.codEstacao);
+    for (int i = 0; i < n; i++) {
+        // --- leitura dos campos ---
+        scanf("%d", &novo.codEstacao);
 
-    ScanQuoteString(bufStr);
-    novo.tamNomeEstacao = strlen(bufStr);
-    novo.nomeEstacao = malloc(novo.tamNomeEstacao + 1);
-    memcpy(novo.nomeEstacao, bufStr, novo.tamNomeEstacao + 1);
+        ScanQuoteString(bufStr);
+        novo.tamNomeEstacao = strlen(bufStr);
+        novo.nomeEstacao = malloc(novo.tamNomeEstacao + 1);
+        memcpy(novo.nomeEstacao, bufStr, novo.tamNomeEstacao + 1);
 
-    scanf("%d", &novo.codLinha);
+        scanf("%d", &novo.codLinha);
 
-    ScanQuoteString(bufStr);
-    novo.tamNomeLinha = strlen(bufStr);
-    novo.nomeLinha = malloc(novo.tamNomeLinha + 1);
-    memcpy(novo.nomeLinha, bufStr, novo.tamNomeLinha + 1);
+        ScanQuoteString(bufStr);
+        novo.tamNomeLinha = strlen(bufStr);
+        novo.nomeLinha = malloc(novo.tamNomeLinha + 1);
+        memcpy(novo.nomeLinha, bufStr, novo.tamNomeLinha + 1);
 
-    ScanQuoteString(bufStr);
-    novo.codProxEstacao = (strlen(bufStr) == 0) ? -1 : atoi(bufStr);
+        char bufInt[32];
+        scanf("%s", bufInt);
+        novo.codProxEstacao = (strcmp(bufInt, "NULO") == 0) ? -1 : atoi(bufInt);
 
-    ScanQuoteString(bufStr);
-    novo.distProxEstacao = (strlen(bufStr) == 0) ? -1 : atoi(bufStr);
+        scanf("%s", bufInt);
+        novo.distProxEstacao = (strcmp(bufInt, "NULO") == 0) ? -1 : atoi(bufInt);
 
-    ScanQuoteString(bufStr);
-    novo.codLinhaIntegra = (strlen(bufStr) == 0) ? -1 : atoi(bufStr);
+        scanf("%s", bufInt);
+        novo.codLinhaIntegra = (strcmp(bufInt, "NULO") == 0) ? -1 : atoi(bufInt);
 
-    ScanQuoteString(bufStr);
-    novo.codEstIntegra = (strlen(bufStr) == 0) ? -1 : atoi(bufStr);
+        scanf("%s", bufInt);
+        novo.codEstIntegra = (strcmp(bufInt, "NULO") == 0) ? -1 : atoi(bufInt);
 
-    novo.removido = '0';
-    novo.proximo  = -1;
+        novo.removido = '0';
+        novo.proximo  = -1;
 
-    // --- verifica duplicata via busca binária no índice ---
-    if (buscaBinariaIndice(pares, total, novo.codEstacao) != -1) {
-        printf("Chave já existente: registro com codEstacao %d não inserido.\n",
-               novo.codEstacao);
-        free(novo.nomeEstacao);
-        free(novo.nomeLinha);
-        free(pares);
-        fclose(fpDados);
-        return 1;
-    }
-
-    // --- marca o arquivo de dados como inconsistente durante a escrita ---
-    escreveCabecalho(fpDados, '0', -1, proxRRN, nroEstacoes, nroParesEstacao);
-
-    // posiciona no fim do arquivo de dados e escreve o novo registro
-    int novoRRN = proxRRN;
-    fseek(fpDados, 0, SEEK_END);
-    escreveRegistroDados(fpDados, &novo);
-
-    // atualiza o cabeçalho: proxRRN incrementado, arquivo marcado como consistente
-    escreveCabecalho(fpDados, '1', -1, proxRRN + 1, nroEstacoes, nroParesEstacao);
-    fclose(fpDados);
-
-    // --- insere o novo par no índice mantendo a ordem crescente por codEstacao ---
-    // realoca o array com uma posição extra
-    pares = realloc(pares, (total + 1) * sizeof(ParIndice));
-
-    // encontra a posição de inserção (busca linear — o array já está ordenado)
-    int posInsert = total;
-    for (int i = 0; i < total; i++) {
-        if (pares[i].codEstacao > novo.codEstacao) {
-            posInsert = i;
-            break;
+        // --- verifica duplicata ---
+        if (buscaBinariaIndice(pares, total, novo.codEstacao) != -1) {
+            printf("Chave já existente: registro com codEstacao %d não inserido.\n",
+                novo.codEstacao);
+            free(novo.nomeEstacao);
+            free(novo.nomeLinha);
+            continue;
         }
-    }
 
-    // desloca os elementos maiores para abrir espaço
-    for (int i = total; i > posInsert; i--)
-        pares[i] = pares[i - 1];
+        // --- marca inconsistente ---
+        escreveCabecalho(fpDados, '0', topo, proxRRN, nroEstacoes, nroParesEstacao);
 
-    // insere o novo par na posição correta
-    pares[posInsert].codEstacao = novo.codEstacao;
-    pares[posInsert].rrn        = novoRRN;
+        // --- determina onde escrever ---
+        int novoRRN;
+        if (topo != -1) {
+            novoRRN = topo;
+            long offsetTopo = TAM_REG_CABECALHO + topo * (long)TAM_REG_DADOS;
+            struct registro regRemovido = leRegistro(fpDados, offsetTopo);
+            topo = regRemovido.proximo;
+            free(regRemovido.nomeEstacao);
+            free(regRemovido.nomeLinha);
+            fseek(fpDados, offsetTopo, SEEK_SET);
+            escreveRegistroDados(fpDados, &novo);
+        } else {
+            novoRRN = proxRRN;
+            fseek(fpDados, 0, SEEK_END);
+            escreveRegistroDados(fpDados, &novo);
+            proxRRN++;
+        }
 
-    // grava o índice atualizado em disco
-    if (salvaPares(arquivoIndice, pares, total + 1) != 0) {
-        printf("Falha no processamento do arquivo.\n");
+        // --- atualiza contagens ---
+        if (novo.codProxEstacao != -1)
+            nroParesEstacao++;
+
+        int nomeJaExiste = 0;
+        for (int k = 0; k < proxRRN; k++) {
+            if (k == novoRRN) continue;
+            long offK = TAM_REG_CABECALHO + k * (long)TAM_REG_DADOS;
+            struct registro regK = leRegistro(fpDados, offK);
+            if (regK.removido == '0' &&
+                regK.tamNomeEstacao == novo.tamNomeEstacao &&
+                memcmp(regK.nomeEstacao, novo.nomeEstacao, novo.tamNomeEstacao) == 0) {
+                nomeJaExiste = 1;
+                free(regK.nomeEstacao);
+                free(regK.nomeLinha);
+                break;
+            }
+            free(regK.nomeEstacao);
+            free(regK.nomeLinha);
+        }
+        if (!nomeJaExiste)
+            nroEstacoes++;
+
+        // --- atualiza cabeçalho ---
+        escreveCabecalho(fpDados, '1', topo, proxRRN, nroEstacoes, nroParesEstacao);
+
+        // --- atualiza índice em memória ---
+        pares = realloc(pares, (total + 1) * sizeof(ParIndice));
+        int posInsert = total;
+        for (int k = 0; k < total; k++) {
+            if (pares[k].codEstacao > novo.codEstacao) {
+                posInsert = k;
+                break;
+            }
+        }
+        for (int k = total; k > posInsert; k--)
+            pares[k] = pares[k - 1];
+        pares[posInsert].codEstacao = novo.codEstacao;
+        pares[posInsert].rrn        = novoRRN;
+        total++;
+
         free(novo.nomeEstacao);
         free(novo.nomeLinha);
-        free(pares);
-        return 1;
     }
 
-    free(novo.nomeEstacao);
-    free(novo.nomeLinha);
+    fclose(fpDados);
     free(pares);
 
-    // exibe checksums dos dois arquivos atualizados
     BinarioNaTela(arquivoEntrada);
-    BinarioNaTela(arquivoIndice);
+    criaIndice(arquivoEntrada, arquivoIndice);
     return 0;
 }

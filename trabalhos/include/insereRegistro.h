@@ -5,6 +5,6 @@ Luís Filipe Vasconcelos Peres - 10310641
 #ifndef INSERE_REGISTRO_H
 #define INSERE_REGISTRO_H
 
-int insertRegistro(char *arquivoEntrada, char *arquivoIndice);
+int insertRegistro(char *arquivoEntrada, char *arquivoIndice, int n);
 
 #endif

@@ -26,7 +26,7 @@ int main() {
 
     // funcionalidades 6 e 7 requerem um terceiro argumento inteiro (n buscas)
     int n = 0;
-    if (funcionalidade == 6 || funcionalidade == 7) {
+    if (funcionalidade == 6 || funcionalidade == 7 || funcionalidade == 8) {
         scanf("%d", &n);
     }
 
@@ -53,7 +53,7 @@ int main() {
             removeRegistros(argv[0], argv[1], n);
             break;
         case 8:
-            insertRegistro(argv[0], argv[1]);
+            insertRegistro(argv[0], argv[1], n);
             break;
     }
 
