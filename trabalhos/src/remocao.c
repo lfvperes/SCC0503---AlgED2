@@ -14,6 +14,14 @@ Luís Filipe Vasconcelos Peres - 10310641
 #include "remocao.h"
 #include "escrita.h"
 
+static int codigoExiste(int *codigos, int n, int codigo) {
+    for (int i = 0; i < n; i++) {
+        if (codigos[i] == codigo)
+            return 1;
+    }
+    return 0;
+}
+
 int removeRegistros(char *arquivoEntrada, char *arquivoIndice, int n) {
     // abre o arquivo de dados para leitura e escrita sem truncar
     FILE *fpEntrada = fopen(arquivoEntrada, "r+b");
@@ -82,13 +90,17 @@ int removeRegistros(char *arquivoEntrada, char *arquivoIndice, int n) {
         int encontrados = 0;
         if (usaIndice) {
             int rrn = buscaBinariaIndice(pares, totalIndice, chave);
+        
             if (rrn != -1) {
                 rrns = malloc(sizeof(int));
                 rrns[0] = rrn;
                 encontrados = 1;
+            } else {
+                // fallback para busca sequencial
+                encontrados = buscaRegistros(fpEntrada, nomeCampo, valorCampo,
+                                             m, proxRRN, MODO_COLETAR_RRN, &rrns);
             }
         } else {
-            rrns = NULL;
             encontrados = buscaRegistros(fpEntrada, nomeCampo, valorCampo,
                                          m, proxRRN, MODO_COLETAR_RRN, &rrns);
         }
@@ -101,15 +113,37 @@ int removeRegistros(char *arquivoEntrada, char *arquivoIndice, int n) {
             // lê o codEstacao do registro para remover do índice
             struct registro reg = leRegistro(fpEntrada, offset);
             int codEstacaoRemovido = reg.codEstacao;
+
+            // decrementa nroPares se tinha próxima estação
+            if (reg.codProxEstacao != -1)
+                nroParesEstacao--;
+            
+            // verifica se o nome da estação desaparece completamente
+            int nomeAindaExiste = 0;
+            for (int k = 0; k < proxRRN; k++) {
+                if (k == rrn) continue;
+                long offK = TAM_REG_CABECALHO + k * (long)TAM_REG_DADOS;
+                struct registro regK = leRegistro(fpEntrada, offK);
+                int mesmoNome = (regK.removido == '0' &&
+                                regK.tamNomeEstacao == reg.tamNomeEstacao &&
+                                memcmp(regK.nomeEstacao, reg.nomeEstacao, reg.tamNomeEstacao) == 0);
+                free(regK.nomeEstacao);
+                free(regK.nomeLinha);
+                if (mesmoNome) { nomeAindaExiste = 1; break; }
+            }
+            if (!nomeAindaExiste)
+                nroEstacoes--;
+            
             free(reg.nomeEstacao);
             free(reg.nomeLinha);
-
-            // escreve marcador de remoção e aponta para o topo atual da pilha
+            
+            // escreve marcador e topo
             fseek(fpEntrada, offset, SEEK_SET);
             char marcador = '1';
             fwrite(&marcador, sizeof(char), 1, fpEntrada);
             fwrite(&topo, sizeof(int), 1, fpEntrada);
-            fflush(fpEntrada);  // garante que o marcador está no disco antes da próxima leitura
+            fflush(fpEntrada);
+            
 
             // atualiza o topo da pilha (cabeçalho será escrito após todas as remoções)
             topo = rrn;
@@ -137,71 +171,17 @@ int removeRegistros(char *arquivoEntrada, char *arquivoIndice, int n) {
         
     }
 
-    // recalcula os contadores a partir do estado final do arquivo
-    nroEstacoes = 0;
-    nroParesEstacao = 0;
-
-    char **nomesVistos = NULL;
-    struct parEstacao *paresVistos = NULL;
-
-    for (int rrn = 0; rrn < proxRRN; rrn++) {
-        long offset = TAM_REG_CABECALHO + rrn * TAM_REG_DADOS;
-
-        struct registro reg = leRegistro(fpEntrada, offset);
-
-        // ignora registros removidos
-        if (reg.removido == '1') {
-            free(reg.nomeEstacao);
-            free(reg.nomeLinha);
-            continue;
-        }
-
-        // atualiza nroEstacoes
-        if (!nomeEstacaoExiste(nomesVistos, nroEstacoes, &reg)) {
-            nomesVistos = realloc(nomesVistos, (nroEstacoes + 1) * sizeof(char *));
-            nomesVistos[nroEstacoes] = malloc(reg.tamNomeEstacao + 1);
-
-            memcpy(nomesVistos[nroEstacoes],
-                reg.nomeEstacao,
-                reg.tamNomeEstacao);
-
-            nomesVistos[nroEstacoes][reg.tamNomeEstacao] = '\0';
-
-            nroEstacoes++;
-        }
-
-        // atualiza nroParesEstacao
-        struct parEstacao parNovo;
-        parNovo.codEstacao1 = reg.codEstacao;
-        parNovo.codEstacao2 = reg.codProxEstacao;
-
-        if (reg.codProxEstacao != -1 &&
-            !parExiste(paresVistos, nroParesEstacao, parNovo)) {
-
-            paresVistos = realloc(
-                paresVistos,
-                (nroParesEstacao + 1) * sizeof(struct parEstacao));
-
-            paresVistos[nroParesEstacao] = parNovo;
-            nroParesEstacao++;
-        }
-
-        free(reg.nomeEstacao);
-        free(reg.nomeLinha);
-    }
-    for (int i = 0; i < nroEstacoes; i++)
-        free(nomesVistos[i]);
-
-    free(nomesVistos);
-    free(paresVistos);
+    
 
     // escreve o cabeçalho atualizado uma única vez após todas as remoções
     escreveCabecalho(fpEntrada, '1', topo, proxRRN, nroEstacoes, nroParesEstacao);
     
     free(pares);
     fclose(fpEntrada);
+
     BinarioNaTela(arquivoEntrada);
     criaIndice(arquivoEntrada, arquivoIndice);
+
     
     return 0;
 }
