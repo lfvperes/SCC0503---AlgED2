@@ -53,7 +53,7 @@ static int salvaPares(char *arquivoIndice, ParIndice *pares, int total) {
 }
 
 int insertRegistro(char *arquivoEntrada, char *arquivoIndice, int n) {
-    // --- abre e valida o arquivo de índice ---
+    // abre e valida o arquivo de índice
     FILE *fpIndice = fopen(arquivoIndice, "rb");
     if (fpIndice == NULL) {
         printf("Falha no processamento do arquivo.\n");
@@ -77,7 +77,7 @@ int insertRegistro(char *arquivoEntrada, char *arquivoIndice, int n) {
         return 1;
     }
 
-    // --- abre e valida o arquivo de dados ---
+    // abre e valida o arquivo de dados
     FILE *fpDados = fopen(arquivoEntrada, "r+b");
     if (fpDados == NULL) {
         printf("Falha no processamento do arquivo.\n");
@@ -95,7 +95,7 @@ int insertRegistro(char *arquivoEntrada, char *arquivoIndice, int n) {
         return 1;
     }
 
-    // --- lê os campos do novo registro da entrada padrão ---
+    // lê os campos do novo registro da entrada padrão
     // formato: codEstacao nomeEstacao codLinha nomeLinha
     //          codProxEstacao distProxEstacao codLinhaIntegra codEstIntegra
     // campos inteiros ausentes entram como -1; strings ausentes como ""
@@ -103,7 +103,7 @@ int insertRegistro(char *arquivoEntrada, char *arquivoIndice, int n) {
     char bufStr[TAM_REG_DADOS];
 
     for (int i = 0; i < n; i++) {
-        // --- leitura dos campos ---
+        // leitura dos campos
         scanf("%d", &novo.codEstacao);
 
         ScanQuoteString(bufStr);
@@ -134,7 +134,7 @@ int insertRegistro(char *arquivoEntrada, char *arquivoIndice, int n) {
         novo.removido = '0';
         novo.proximo  = -1;
 
-        // --- verifica duplicata ---
+        // verifica duplicata
         if (buscaBinariaIndice(pares, total, novo.codEstacao) != -1) {
             printf("Chave já existente: registro com codEstacao %d não inserido.\n",
                 novo.codEstacao);
@@ -143,10 +143,10 @@ int insertRegistro(char *arquivoEntrada, char *arquivoIndice, int n) {
             continue;
         }
 
-        // --- marca inconsistente ---
+        // marca inconsistente
         escreveCabecalho(fpDados, '0', topo, proxRRN, nroEstacoes, nroParesEstacao);
 
-        // --- determina onde escrever ---
+        // determina onde escrever
         int novoRRN;
         if (topo != -1) {
             novoRRN = topo;
@@ -164,7 +164,7 @@ int insertRegistro(char *arquivoEntrada, char *arquivoIndice, int n) {
             proxRRN++;
         }
 
-        // --- atualiza contagens ---
+        // atualiza contagens
         if (novo.codProxEstacao != -1)
             nroParesEstacao++;
 
@@ -187,10 +187,10 @@ int insertRegistro(char *arquivoEntrada, char *arquivoIndice, int n) {
         if (!nomeJaExiste)
             nroEstacoes++;
 
-        // --- atualiza cabeçalho ---
+        // atualiza cabeçalho
         escreveCabecalho(fpDados, '1', topo, proxRRN, nroEstacoes, nroParesEstacao);
 
-        // --- atualiza índice em memória ---
+        // atualiza índice em memória
         pares = realloc(pares, (total + 1) * sizeof(ParIndice));
         int posInsert = total;
         for (int k = 0; k < total; k++) {
