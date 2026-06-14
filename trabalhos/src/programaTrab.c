@@ -12,10 +12,11 @@ Luís Filipe Vasconcelos Peres - 10310641
 #include "remocao.h"
 #include "fornecidas.h"
 #include "insereRegistro.h"
+#include "atualizaRegistro.h"
 
 int main() {
     int funcionalidade;
-    char argv[2][100];
+    char argv[3][100];
 
     scanf("%d", &funcionalidade);
 
@@ -25,9 +26,8 @@ int main() {
     }
 
     // funcionalidades 6 e 7 requerem um terceiro argumento inteiro (n buscas)
-    int n = 0;
-    if (funcionalidade == 6 || funcionalidade == 7 || funcionalidade == 8) {
-        scanf("%d", &n);
+    if (funcionalidade >= 6) {
+        scanf("%99s", argv[2]);
     }
 
     switch (funcionalidade) {
@@ -47,13 +47,16 @@ int main() {
             criaIndice(argv[0], argv[1]);
             break;
         case 6:
-            buscaIndice(argv[0], argv[1], n);
+            buscaIndice(argv[0], argv[1], atoi(argv[2]));
             break;
         case 7:
-            removeRegistros(argv[0], argv[1], n);
+            removeRegistros(argv[0], argv[1], atoi(argv[2]));
             break;
         case 8:
-            insertRegistro(argv[0], argv[1], n);
+            insertRegistro(argv[0], argv[1], atoi(argv[2]));
+            break;
+        case 9:
+            atualizaRegistros(argv[0], argv[1], atoi(argv[2]));
             break;
     }
 

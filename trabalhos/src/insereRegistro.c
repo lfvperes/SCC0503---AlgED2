@@ -16,7 +16,7 @@ Luís Filipe Vasconcelos Peres - 10310641
 // o status já foi validado pelo chamador. o cursor é posicionado logo
 // após o byte de status antes de chamar esta função.
 // *pares deve ser liberado pelo chamador.
-static int carregaPares(FILE *fpIndice, ParIndice **pares) {
+int carregaPares(FILE *fpIndice, ParIndice **pares) {
     fseek(fpIndice, 0, SEEK_END);
     long tamArquivo = ftell(fpIndice);
     int total = (int)((tamArquivo - sizeof(char)) / (2 * sizeof(int)));
