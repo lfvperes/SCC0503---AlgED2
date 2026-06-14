@@ -11,10 +11,11 @@ Luís Filipe Vasconcelos Peres - 10310641
 #include "buscaIndexada.h"
 #include "remocao.h"
 #include "fornecidas.h"
+#include "insereRegistro.h"
 
 int main() {
     int funcionalidade;
-    char argv[3][100];
+    char argv[2][100];
 
     scanf("%d", &funcionalidade);
 
@@ -50,6 +51,9 @@ int main() {
             break;
         case 7:
             removeRegistros(argv[0], argv[1], n);
+            break;
+        case 8:
+            insertRegistro(argv[0], argv[1]);
             break;
     }
 

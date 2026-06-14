@@ -108,6 +108,7 @@ int buscaRegistros(FILE *fpBin, char **nomeCampo, char **valorCampo, int m, int 
             encontrados++;
         }
 
+        // libera memória do registro atual antes de seguir
         free(reg.nomeEstacao);
         free(reg.nomeLinha);
 
