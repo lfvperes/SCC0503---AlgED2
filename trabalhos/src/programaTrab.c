@@ -13,6 +13,7 @@ Luís Filipe Vasconcelos Peres - 10310641
 #include "fornecidas.h"
 #include "insereRegistro.h"
 #include "atualizaRegistro.h"
+#include "geraGrafo.h"
 
 int main() {
     int funcionalidade;
@@ -20,7 +21,7 @@ int main() {
 
     scanf("%d", &funcionalidade);
 
-    int extra = (funcionalidade == 2) ? 1 : 2;
+    int extra = (funcionalidade == 2 || funcionalidade == 10) ? 1 : 2;
     for (int i = 0; i < extra; i++) {
         scanf("%99s", argv[i]);
     }
@@ -57,6 +58,9 @@ int main() {
             break;
         case 9:
             atualizaRegistros(argv[0], argv[1], atoi(argv[2]));
+            break;
+        case 10:
+            funcionalidade10(argv[0]);
             break;
     }
 
