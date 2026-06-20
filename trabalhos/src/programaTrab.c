@@ -27,7 +27,7 @@ int main() {
     }
 
     // funcionalidades 6 e 7 requerem um terceiro argumento inteiro (n buscas)
-    if (funcionalidade >= 6) {
+    if (funcionalidade >= 6 && funcionalidade < 10) {
         scanf("%99s", argv[2]);
     }
 
