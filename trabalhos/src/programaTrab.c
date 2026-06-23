@@ -14,6 +14,7 @@ Luís Filipe Vasconcelos Peres - 10310641
 #include "insereRegistro.h"
 #include "atualizaRegistro.h"
 #include "geraGrafo.h"
+#include "ciclos.h"
 
 int main() {
     int funcionalidade;
@@ -29,6 +30,10 @@ int main() {
     // funcionalidades 6 e 7 requerem um terceiro argumento inteiro (n buscas)
     if (funcionalidade >= 6 && funcionalidade < 10) {
         scanf("%99s", argv[2]);
+    }
+    // f11, f12, f13: le arquivo + token fixo + string com aspas
+    if (funcionalidade == 12 || funcionalidade == 13) {
+        ScanQuoteString(argv[2]);
     }
 
     switch (funcionalidade) {
@@ -61,6 +66,9 @@ int main() {
             break;
         case 10:
             funcionalidade10(argv[0]);
+            break;
+        case 13:
+            funcionalidade13(argv[0], argv[2]);
             break;
     }
 
