@@ -16,6 +16,7 @@ Luís Filipe Vasconcelos Peres - 10310641
 #include "geraGrafo.h"
 #include "ciclos.h"
 #include "dijkstra.h"
+#include "mst.h"
 
 int main() {
     int funcionalidade;
@@ -89,6 +90,9 @@ int main() {
             break;
         case 11:
             funcionalidade11(argv[0], argv[2], argv[3]);
+            break;
+        case 12:
+            funcionalidade12(argv[0], argv[2]);
             break;
         case 13:
             funcionalidade13(argv[0], argv[2]);
