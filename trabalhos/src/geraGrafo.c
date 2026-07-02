@@ -108,7 +108,7 @@ static void preencheGrafo(FILE *fp, Grafo *g, MapaCodNome *mapa, int totalMapa) 
             char *nomeV = buscaMapa(mapa, totalMapa, reg.codEstIntegra);
             if (nomeV != NULL && strcmp(nomeU, nomeV) != 0) {
                 garanteVertice(g, nomeV);
-                insereAresta(g, nomeU, nomeV, 0, "Integracao");
+                insereAresta(g, nomeU, nomeV, 0, "Integração");
             }
         }
 

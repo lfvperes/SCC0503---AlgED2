@@ -116,6 +116,8 @@ void insereAresta(Grafo *g, char *nomeU, char *nomeV, int dist, char *nomeLinha)
 void imprimeGrafo(Grafo *g) {
     for (int i = 0; i < g->nVertices; i++) {
         Vertice *v = &g->vertices[i];
+        // vertices sem arestas de saida nao sao impressos
+        if (v->lista == NULL) continue;
 
         // imprime o nome do vértice
         printf("%s", v->nomeEstacao);
