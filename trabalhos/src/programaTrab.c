@@ -41,18 +41,18 @@ int main() {
     // f11: nomeEstacaoOrigem "valorOrigem" nomeEstacaoDestino "valorDestino"
     // consome os dois tokens fixos e lê os dois valores com aspas
     if (funcionalidade == 11) {
-        char campoIgnorado[200];
-        scanf("%199s", campoIgnorado); // consome "nomeEstacaoOrigem"
+        char nomeCampo[200];
+        scanf("%199s", nomeCampo); // consome "nomeEstacaoOrigem"
         ScanQuoteString(argv[2]);      // lê "valorOrigem"
-        scanf("%199s", campoIgnorado); // consome "nomeEstacaoDestino"
+        scanf("%199s", nomeCampo); // consome "nomeEstacaoDestino"
         ScanQuoteString(argv[3]);      // lê "valorDestino"
     }
 
     // f12 e f13: nomeEstacaoOrigem "valorOrigem"
     // consome o token fixo e lê o valor com aspas
     if (funcionalidade == 12 || funcionalidade == 13) {
-        char campoIgnorado[200];
-        scanf("%199s", campoIgnorado); // consome "nomeEstacaoOrigem"
+        char nomeCampo[200];
+        scanf("%199s", nomeCampo); // consome "nomeEstacaoOrigem"
         ScanQuoteString(argv[2]);      // lê "valorOrigem"
     }
 
