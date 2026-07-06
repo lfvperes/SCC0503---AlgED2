@@ -13,6 +13,10 @@ Luís Filipe Vasconcelos Peres - 10310641
 // retorna -1 se o campo for desconhecido
 CampoRegistro nomeCampoParaEnum(char *nome);
 
+// compara um campo do registro (já em memória) com o valor fornecido como string
+// retorna 1 se o campo satisfaz o critério, 0 caso contrário
+int verificaCampoMem(const struct registro *reg, CampoRegistro campo, char *valor);
+
 typedef enum { MODO_IMPRIMIR, MODO_COLETAR_RRN } ModoBusca;
 
 // percorre os registros do arquivo aplicando m filtros (lógica AND).

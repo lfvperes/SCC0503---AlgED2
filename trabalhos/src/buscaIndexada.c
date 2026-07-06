@@ -69,21 +69,13 @@ ParIndice *carregaIndice(char *arquivoIndice, int *total) {
 }
 
 int buscaIndice(char *arquivoEntrada, char *arquivoIndice, int n) {
-    // abre o arquivo de índice
-    FILE *fpIndice = fopen(arquivoIndice, "rb");
-    if (fpIndice == NULL) {
-        printf("Falha no processamento do arquivo.\n");
-        return 1;
-    }
-
-    // carrega o índice em memória
+    // carrega o índice inteiramente em memória RAM
     int total;
     ParIndice *pares = carregaIndice(arquivoIndice, &total);
     if (pares == NULL) {
         printf("Falha no processamento do arquivo.\n");
         return 1;
     }
-    fclose(fpIndice);
 
     // abre e valida o arquivo de dados
     FILE *fpEntrada = fopen(arquivoEntrada, "rb");
@@ -138,7 +130,8 @@ int buscaIndice(char *arquivoEntrada, char *arquivoIndice, int n) {
 
         int encontrados = 0;
         if (usaIndice) {
-            // busca indexada: obtém RRN pelo índice e acessa diretamente
+            // busca indexada: usa o índice para localizar o RRN diretamente,
+            // depois verifica TODOS os m filtros no registro carregado
             int rrn = buscaBinariaIndice(pares, total, chave);
             if (rrn == -1) {
                 encontrados = 0;
@@ -146,8 +139,18 @@ int buscaIndice(char *arquivoEntrada, char *arquivoIndice, int n) {
                 int offset = TAM_REG_CABECALHO + rrn * TAM_REG_DADOS;
                 struct registro dados = leRegistro(fpEntrada, offset);
                 if (dados.removido != '1') {
-                    imprimeRegistro(dados);
-                    encontrados = 1;
+                    int satisfazTodos = 1;
+                    for (int j = 0; j < m; j++) {
+                        CampoRegistro campo = nomeCampoParaEnum(nomeCampo[j]);
+                        if (!verificaCampoMem(&dados, campo, valorCampo[j])) {
+                            satisfazTodos = 0;
+                            break;
+                        }
+                    }
+                    if (satisfazTodos) {
+                        imprimeRegistro(dados);
+                        encontrados = 1;
+                    }
                 }
                 free(dados.nomeEstacao);
                 free(dados.nomeLinha);

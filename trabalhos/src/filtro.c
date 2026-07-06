@@ -26,7 +26,7 @@ CampoRegistro nomeCampoParaEnum(char *nome) {
 }
 
 // compara um campo do registro (já em memória) com o valor fornecido como string
-static int verificaCampoMem(const struct registro *reg, CampoRegistro campo, char *valor) {
+int verificaCampoMem(const struct registro *reg, CampoRegistro campo, char *valor) {
     int valorEhNulo = (valor[0] == '\0') || (strcmp(valor, "NULO") == 0);
     int valorInt = valorEhNulo ? -1 : (int)strtol(valor, NULL, 10);
 
